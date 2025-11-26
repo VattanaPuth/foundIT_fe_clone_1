@@ -50,7 +50,9 @@ export default function ActionTrio({
         {/* 3-up actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 mt-10">
           {items.map(({ id, title, subtitle, cta, Icon }) => (
-            <div key={id} className="flex flex-col items-center text-center">
+            <div key={id} className="flex flex-col items-center text-center mt-14
+                                    sm:flex sm:flex-col sm:items-center sm:text-center sm:mt-14
+            ">
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-white">
                 <Icon className="h-7 w-7" aria-hidden />
               </div>
@@ -58,7 +60,7 @@ export default function ActionTrio({
               <h3 className="text-base font-semibold text-slate-900">{title}</h3>
               <p className="mt-1 max-w-xs text-sm text-slate-500">{subtitle}</p>
 
-              <a href={cta.href ?? "#"} className="mt-6 inline-flex items-center justify-center rounded-md bg-slate-900 px-32 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/20 !no-underline hover:!no-underline focus:!no-underline">
+              <a href={cta.href ?? "#"} className="mt-6 inline-flex items-center justify-center rounded-md bg-slate-900 px-20 lg:px-32 xl:px-32 py-2 sm:px-24 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/20 !no-underline hover:!no-underline focus:!no-underline">
                 {cta.label}
               </a>
             </div>

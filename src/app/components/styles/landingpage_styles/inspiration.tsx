@@ -154,7 +154,7 @@ export default function Inspiration() {
           </p>
           <a
             href="#"
-            className="rounded-full px-3 py-2 font-medium text-lg transition-colors hover:bg-white/10 hover:text-slate-100 !text-gray-600 !no-underline"
+            className="rounded-full px-3 py-2 font-medium text-lg transition-colors hover:bg-white/10 hover:text-slate-100 !text-emerald-600 !no-underline"
           >
             View all to →
           </a>

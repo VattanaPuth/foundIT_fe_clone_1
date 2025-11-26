@@ -65,9 +65,9 @@ export default function TrustByCreator({
         <h2 className="text-xl font-semibold tracking-tight text-gray-900 sm:text-2xl">{title}</h2>
         <a
           href={ctaHref}
-          className="hidden text-sm font-medium text-gray-600 hover:text-gray-900 sm:inline"
+          className="hidden text-lg font-medium !no-underline hover:text-gray-900 sm:inline"
         >
-          {ctaText}
+          <p className="text-emerald-600">{ctaText}</p>
         </a>
       </div>
 

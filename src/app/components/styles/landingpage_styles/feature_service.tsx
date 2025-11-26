@@ -162,7 +162,7 @@ export default function FeaturedServices() {
     <section className="mx-auto mt-20 px-3 sm:px-6 lg:px-8">
         <div className="mb-3 flex items-center justify-between pl-6 pr-12">
             <p className="text-3xl font-medium text-[#0A0A0A]">Featured services</p>
-            <a href="#/gigs" className="text-lg font-medium !text-gray-600 hover:text-gray-900 !no-underline">
+            <a href="#/gigs" className="text-lg font-medium !text-emerald-600 hover:text-gray-900 !no-underline">
                 Browse all gigs →
             </a>
         </div>

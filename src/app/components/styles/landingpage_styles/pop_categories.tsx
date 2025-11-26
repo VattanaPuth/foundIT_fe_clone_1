@@ -31,12 +31,17 @@ export default function PopularCategories() {
 
   return (
     <section className="bg-white">
-      <div className="mx-auto w-full px-6 py-12 mt-10">
-        <h1 className="text-center text-3xl sm:text-4xl font-semibold text-gray-900">
+      <div className="w-full mt-96 pt-56
+                      sm:w-full sm:px-6 sm:py-12 sm:mt-[560px] 
+                      md:mx-auto md:w-full md:px-6 md:py-12 md:mt-6
+                      lg:mx-auto lg:w-full lg:px-6 lg:py-12 lg:mt-6
+                      xl:mx-auto xl:w-full xl:px-6 xl:py-12 xl:mt-6
+      ">
+        <p className="text-center text-3xl sm:text-4xl font-semibold text-gray-900">
           Popular categories
-        </h1>
+        </p>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-y-10 gap-x-6 mt-16">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 xl:grid-cols-7 gap-y-10 gap-x-6 mt-16">
           {items.map(({ label, icon: Icon, bubbleBg, bubbleRing, text }) => (
             <button
               key={label}

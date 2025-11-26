@@ -1,7 +1,36 @@
 // app/page.tsx
+"use client";
 import React from "react";
+import { useState } from "react";
 
+const HOW_IT_WORKS_SECTIONS = [
+  {
+    title: "For Clients",
+    steps: [
+      "Post your project with clear requirements and budget",
+      "Review proposals from qualified freelancers",
+      "Select and contract with secure payment protection",
+    ],
+  },
+  {
+    title: "For Freelancers",
+    steps: [
+      "Create your profile and showcase your best work",
+      "Set up gig packages with clear deliverables",
+      "Get discovered and build your reputation",
+    ],
+  },
+  {
+    title: "For Sellers",
+    steps: [
+      "Upload ready-made products to your shop",
+      "Set pricing and licensing terms",
+      "Earn passive income from instant downloads",
+    ],
+  },
+];
 export default function CommunityPage() {
+  const [activeIndex, setActiveIndex] = useState<number | null>(0);
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-10 mt-5">
       {/* Heading */}
@@ -13,48 +42,48 @@ export default function CommunityPage() {
         {/* LEFT: How it works */}
         <section>
           <p className="text-2xl mt-3 text-gray-900">How it works</p>
+          <div className="mt-12"></div>
 
-          {/* For Clients */}
-          <div className="mt-6 border-b border-gray-200 pb-6">
-            <div className="flex items-center justify-between">
-              <p className="text-xl pt-6 text-gray-900">For Clients</p>
-              <ChevronDown />
-            </div>
+          {HOW_IT_WORKS_SECTIONS.map((section, index) => {
+            const isOpen = activeIndex === index;
 
-            <ol className="mt-4 space-y-4">
-              <StepItem n={1} text="Post your project with clear requirements and budget" />
-              <StepItem n={2} text="Review proposals from qualified freelancers" />
-              <StepItem n={3} text="Select and contract with secure payment protection" />
-            </ol>
-          </div>
+            const wrapperClasses =
+              index === 0
+                ? "mt-6 border-b border-gray-200 pb-6"
+                : index === HOW_IT_WORKS_SECTIONS.length - 1
+                ? "pt-6"
+                : "border-b border-gray-200 py-6";
+ 
+            return (
+              <div key={section.title} className={wrapperClasses}>
+                <div
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() =>
+                    setActiveIndex(isOpen ? null : index)
+                  }
+                >
+                  <p className="text-xl text-gray-900 pt-0">{section.title}</p>
+                  <ChevronDown
+                      className={`transition-transform ${
+                      isOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </div>
 
-          {/* For Freelancers */}
-          <div className="border-b border-gray-200 py-6">
-            <div className="flex items-center justify-between">
-              <p className="text-xl text-gray-900">For Freelancers</p>
-              <ChevronDown />
-            </div>
-
-            <ol className="mt-4 space-y-4">
-              <StepItem n={1} text="Create your profile and showcase your best work" />
-              <StepItem n={2} text="Set up gig packages with clear deliverables" />
-              <StepItem n={3} text="Get discovered and build your reputation" />
-            </ol>
-          </div>
-
-          {/* For Sellers */}
-          <div className="pt-6">
-            <div className="flex items-center justify-between">
-              <p className="text-xl text-gray-900">For Sellers</p>
-              <ChevronDown />
-            </div>
-
-            <ol className="mt-4 space-y-4">
-              <StepItem n={1} text="Upload ready-made products to your shop" />
-              <StepItem n={2} text="Set pricing and licensing terms" />
-              <StepItem n={3} text="Earn passive income from instant downloads" />
-            </ol>
-          </div>
+                {isOpen && (
+                  <ol className="mt-4 space-y-4">
+                    {section.steps.map((text, stepIndex) => (
+                      <StepItem
+                        key={text}
+                        n={stepIndex + 1}
+                        text={text}
+                      />
+                    ))}
+                  </ol>
+                )}
+              </div>
+            );
+          })}
         </section>
 
         {/* RIGHT: Guides & Playbooks */}
@@ -126,10 +155,10 @@ function GuideCard({
 
 /* ---------- inline SVG icons (no external packages) ---------- */
 
-function ChevronDown() {
+function ChevronDown({ className = "" }: { className?: string }) {
   return (
     <svg
-      className="h-5 w-5 text-gray-400"
+      className={`${className} h-5 w-5 text-gray-400`}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"

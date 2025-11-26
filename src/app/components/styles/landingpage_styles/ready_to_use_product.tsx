@@ -155,7 +155,7 @@ export default function ReadyToUseProducts() {
           <h2 className="text-[15px] font-medium text-gray-700">Ready-to-use products</h2>
           <p className="text-sm text-gray-500">Instant download. Start using in minutes.</p>
         </div>
-        <a href="#/marketplace" className="text-lg font-medium !text-gray-600 hover:text-gray-900 !no-underline">
+        <a href="#/marketplace" className="text-lg font-medium !text-emerald-600 hover:text-gray-900 !no-underline">
           Browse marketplace →
         </a>
       </div>
