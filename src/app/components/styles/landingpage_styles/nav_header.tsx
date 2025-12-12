@@ -41,9 +41,9 @@ export default function NavHeader({
   };
 
   return (
-    <nav className="flex items-center shadow-md -ml-6 p-3 justify-between sm:flex sm:items-center sm:justify-between sm:shadow-md sm:p-3 lg:flex lg:items-center lg:justify-between lg:shadow-md lg:p-3 xl:flex xl:items-center xl:justify-between xl:shadow-md xl:p-3">
+    <nav className="flex items-center shadow-md -ml-6 p-2 justify-between sm:flex sm:items-center sm:justify-between sm:shadow-md sm:p-3 lg:flex lg:items-center lg:justify-between lg:shadow-md lg:p-3 xl:flex xl:items-center xl:justify-between xl:shadow-md xl:p-3">
       <div className="hidden items-center gap-x-3 pl-4 xl:flex xl:items-center xl:gap-x-3 xl:pl-4">
-        <img className="w-fit h-12" src={logoSrc} alt={logoAlt} />
+        <img className="w-fit h-8" src={logoSrc} alt={logoAlt} />
       </div>
 
       {/* Burger Menu (For Small Screens) */}
@@ -116,7 +116,7 @@ export default function NavHeader({
       </div>
 
       {/* Menu Items for Large Screens */}
-      <ul className="hidden items-center gap-x-2 pt-3 hover:cursor-pointer sm:flex sm:items-center sm:gap-x-4 sm:text-lg lg:flex lg:items-center lg:gap-x-8 lg:text-xl xl:flex xl:items-center xl:gap-x-12 xl:text-2xl">
+      <ul className="hidden items-center gap-x-2 pt-3 hover:cursor-pointer sm:flex sm:items-center sm:gap-x-4 sm:text-sm lg:flex lg:items-center lg:gap-x-8 lg:text-lg xl:flex xl:items-center xl:gap-x-12 xl:text-xl">
         {menuItems.map((arr, index) => {
           const isOpen = activeIndex === index;
           return (
@@ -138,7 +138,7 @@ export default function NavHeader({
       </ul>
 
       {/* Sign In & Join buttons */}
-      <div className="flex items-center gap-x-3 text-sm pr-2 sm:flex sm:items-center sm:gap-x-6 sm:text-lg sm:pr-4 lg:flex lg:items-center lg:gap-x-6 lg:text-lg lg:pr-4 xl:flex xl:items-center xl:gap-x-6 xl:text-xl xl:pr-4">
+      <div className="flex items-center gap-x-3 text-sm pr-2 sm:flex sm:items-center sm:gap-x-6 sm:text-sm sm:pr-4 lg:flex lg:items-center lg:gap-x-6 lg:text-sm lg:pr-4 xl:flex xl:items-center xl:gap-x-6 xl:text-lg xl:pr-4">
         <button className="hover:opacity-75">Sign in</button>
         <div className="rounded-2xl bg-[#D92AD0] px-3 py-2 transition-colors">
           <button className="text-white">Join</button>
