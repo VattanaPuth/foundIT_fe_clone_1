@@ -105,7 +105,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ activeSection, onSectionChang
   };
 
   return (
-    <div className="index-50 w-80 ml-6 h-screen space-y-6 bg-white rounded-2xl shadow-md p-2">
+    <div className="index-50 w-80 ml-6 h-screen space-y-6 bg-white rounded-2xl p-2 border border-gray-200">
       <div className='flex items-center px-3 py-1 gap-x-4 bg-[#EFF6FF] border-2 rounded-2xl border-[#BEDBFF] active:opacity-30 cursor-pointer'>
         <svg className="w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 15" fill="none">
           <path d="M11.3346 8.00063C11.3346 11.334 9.0013 13.0006 6.22797 13.9673C6.08274 14.0165 5.92499 14.0142 5.7813 13.9606C3.0013 13.0006 0.667969 11.334 0.667969 8.00063V3.33396C0.667969 3.15715 0.738207 2.98758 0.863231 2.86255C0.988255 2.73753 1.15782 2.66729 1.33464 2.66729C2.66797 2.66729 4.33464 1.86729 5.49464 0.853959C5.63587 0.733291 5.81554 0.666992 6.0013 0.666992C6.18707 0.666992 6.36673 0.733291 6.50797 0.853959C7.67464 1.87396 9.33464 2.66729 10.668 2.66729C10.8448 2.66729 11.0143 2.73753 11.1394 2.86255C11.2644 2.98758 11.3346 3.15715 11.3346 3.33396V8.00063Z" stroke="#1447E6" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>

@@ -51,7 +51,7 @@ const DocumentTemplate: React.FC<{ name: string; icon: React.ReactNode }> = ({ n
 
 
 const ContractsAndCompliance: React.FC = () => {
-  const [isMilestonesRequired, setIsMilestonesRequired] = useState(true);
+  const [isMilestonesRequired, setIsMilestonesRequired] = useState(false);
   const [isTimeTrackerRequired, setIsTimeTrackerRequired] = useState(false);
   const [isHourCapsEnabled, setIsHourCapsEnabled] = useState(false);
 
@@ -68,7 +68,7 @@ const ContractsAndCompliance: React.FC = () => {
   );
 
   return (
-    <div className="bg-white rounded-2xl shadow-md w-full ml-4 mr-4 px-8 py-4 h-screen overflow-y-auto">
+    <div className="bg-white rounded-2xl border border-gray-200 w-full ml-4 mr-4 px-8 py-4 h-screen overflow-y-auto">
       <div className="border-b border-gray-200 mb-6">
         <div className="flex items-center space-x-2">
           <DocumentIcon />

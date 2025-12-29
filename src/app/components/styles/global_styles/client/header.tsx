@@ -1,9 +1,10 @@
 export default function ClientNavHeader(){
     return (
         <div className="flex p-3 -ml-1 pt-2 pb-2 justify-between items-center pb- bg-white top-0 z-50 sticky">
+            {/* search */}
             <div className="flex w-full items-center gap-x-8 space-x-4">
-            <img className="w-fit h-8" src="/favicon.ico" alt="logo"/>
-            <div className='flex w-3xl items-center gap-x-2 h-12 border-t-1 border-b-1 border-[#F3F3F5] bg-gray-100 p-3 rounded-2xl'>
+                <img className="w-fit h-8" src="/favicon.ico" alt="logo"/>
+                <div className='flex w-3xl items-center gap-x-2 h-12 border-t-1 border-b-1 border-[#F3F3F5] bg-gray-100 p-3 rounded-2xl'>
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M19 19L15.5001 15.5M18 9.5C18 14.1944 14.1944 18 9.5 18C4.80558 18 1 14.1944 1 9.5C1 4.80558 4.80558 1 9.5 1C14.1944 1 18 4.80558 18 9.5Z" stroke="#717182" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>

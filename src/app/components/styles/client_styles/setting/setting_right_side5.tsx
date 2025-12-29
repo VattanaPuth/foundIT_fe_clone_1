@@ -57,7 +57,7 @@ const Notifications: React.FC = () => {
   const [spendAlerts, setSpendAlerts] = useState('At 80% and 100% of budget');
 
   return (
-    <div className="bg-white shadow-md rounded-2xl w-full ml-4 mr-4 px-8 py-4 h-screen overflow-y-auto">
+    <div className="bg-white border border-gray-200 rounded-2xl w-full ml-4 mr-4 px-8 py-4 h-screen overflow-y-auto">
       {/* Header */}
       <div className="border-b border-gray-200 pb-1 mb-6">
         <div className="flex items-center space-x-3">

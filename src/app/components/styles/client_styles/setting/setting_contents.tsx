@@ -39,7 +39,7 @@ const ClientContent: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-screen">
       {/* Left Sidebar */}
       <LeftSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
       

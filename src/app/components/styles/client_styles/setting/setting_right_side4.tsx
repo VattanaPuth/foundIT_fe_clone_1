@@ -58,11 +58,11 @@ const InvoicesAndReceipts: React.FC = () => {
   };
 
   return (
-    <div className="bg-white shadow-md rounded-2xl w-full ml-4 mr-4 px-8 py-4 h-screen overflow-y-auto">
-      <div className="border-b border-gray-200 pb-4 mb-6">
+    <div className="bg-white border border-gray-200 rounded-2xl w-full ml-4 mr-4 px-8 py-4 h-screen overflow-y-auto">
+      <div className="pb-4">
         <div className="flex items-center space-x-2">
           <ReceiptIcon />
-          <p className="text-xl">Invoices & Receipts</p>
+          <p className="text-2xl">Invoices & Receipts</p>
         </div>
         <div className='-mt-2'>
           <p className="text-lg text-gray-500">Auto-invoicing and export preferences</p>
@@ -77,7 +77,7 @@ const InvoicesAndReceipts: React.FC = () => {
       </div>
 
       <div className="mb-6">
-        <div className="text-gray-700 mb-2">Invoice Email Recipients</div>
+        <div className="text-gray-700 text-2xl mb-2">Invoice Email Recipients</div>
         <input
           type="text"
           value={invoiceEmails}
@@ -85,23 +85,23 @@ const InvoicesAndReceipts: React.FC = () => {
           placeholder="email1@example.com, email2@example.com"
           className="w-full px-3 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-green-500 focus:border-green-500 transition-shadow duration-150"
         />
-        <p className="mt-2 text-xs text-gray-500">Separate multiple emails with commas</p>
+        <p className="mt-2 text-lg text-gray-500">Separate multiple emails with commas</p>
       </div>
 
       <div className="pt-4 border-t border-gray-300">
-        <div className="text-gray-700 mb-2">Download Center</div>
-        <p className="text-gray-500 text-sm mb-4">Export invoice history and receipts</p>
+        <div className="text-gray-700 text-2xl mb-2">Download Center</div>
+        <p className="text-gray-500 text-lg mb-4">Export invoice history and receipts</p>
         
         <div className="flex space-x-4">
           <p
             onClick={handleExportCSV}
-            className="inline-flex justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-150"
+            className="inline-flex justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-150"
           >
             Export CSV
           </p>
           <p
             onClick={handleExportPDF}
-            className="inline-flex justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-150"
+            className="inline-flex justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-150"
           >
             Export PDF
           </p>

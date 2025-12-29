@@ -74,7 +74,7 @@ const SettingRightSide7Com1: React.FC = () => {
   };
 
   return (
-    <div className="w-full px-6 py-8 space-y-6 bg-white rounded-2xl shadow-md">
+    <div className="w-full px-6 py-8 space-y-6 bg-white rounded-2xl shadow-md border border-gray-200">
       <div className="space-y-4">
         <div className="text-lg font-semibold">Password</div>
         <div className="text-sm text-gray-500">Change your password and ensure it’s strong</div>

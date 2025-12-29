@@ -56,7 +56,7 @@ const SettingRightSide7Com2: React.FC = () => {
   };
 
   return (
-    <div className="w-full px-6 py-8 space-y-6 bg-white rounded-2xl shadow-md">
+    <div className="w-full px-6 py-8 space-y-6 bg-white rounded-2xl shadow-md border border-gray-200">
       <div className="space-y-4">
         <div className="text-lg font-semibold">Two-Factor Authentication (2FA)</div>
         <div className="text-sm text-gray-500">Add an extra layer of security to your account</div>
