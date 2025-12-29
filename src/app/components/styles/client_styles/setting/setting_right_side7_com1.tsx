@@ -69,21 +69,25 @@ const SettingRightSide7Com1: React.FC = () => {
     "Very Weak": "bg-gray-200", // Default is neutral (gray)
     Weak: "bg-red-500",
     Medium: "bg-yellow-500",
-    Strong: "bg-green-500",
-    "Very Strong": "bg-green-700",
+    Strong: "bg-[#10B981]",
+    "Very Strong": "bg-[#10B981]",
   };
 
   return (
     <div className="w-full px-6 py-8 space-y-6 bg-white rounded-2xl shadow-md border border-gray-200">
-      <div className="space-y-4">
-        <div className="text-lg font-semibold">Password</div>
-        <div className="text-sm text-gray-500">Change your password and ensure it’s strong</div>
+      <div className="-space-y-3">
+        <div>
+          <p className="text-2xl">Password</p>  
+        </div>
+        <div>
+          <p className="text-lg text-gray-500">Change your password and ensure it’s strong</p>  
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Current Password (blank by default) */}
         <div className="flex flex-col">
-          <div className="text-sm text-gray-500">Current Password</div>
+          <div className="text-lg text-gray-500">Current Password</div>
           <input
             type="password"
             value={currentPassword}
@@ -95,7 +99,7 @@ const SettingRightSide7Com1: React.FC = () => {
 
         {/* New Password */}
         <div className="flex flex-col">
-          <div className="text-sm text-gray-500">New Password</div>
+          <div className="text-lg text-gray-500">New Password</div>
           <input
             type="password"
             value={newPassword}
@@ -103,20 +107,20 @@ const SettingRightSide7Com1: React.FC = () => {
             className="mt-2 px-4 py-2 border border-gray-300 rounded-md w-full"
             required
           />
-          <div className="flex items-center mt-2">
-            <div className="w-full h-2 bg-gray-200 rounded-md">
+          <div className="flex items-center mt-2 gap-x-5">
+            <div className="w-[90%] h-2 bg-gray-200 rounded-md">
               <div
                 className={`h-2 rounded-md ${passwordStrengthClass[passwordStrengthLabel]}`}
                 style={{ width: `${strengthPercentage}%` }} // Dynamic width
               />
             </div>
-            <div className="ml-2 text-sm text-gray-500">{passwordStrengthLabel}</div>
+            <div className="text-sm text-gray-500">{passwordStrengthLabel}</div>
           </div>
         </div>
 
         {/* Confirm New Password */}
         <div className="flex flex-col">
-          <div className="text-sm text-gray-500">Confirm New Password</div>
+          <div className="text-lg text-gray-500">Confirm New Password</div>
           <input
             type="password"
             value={confirmPassword}
@@ -127,7 +131,7 @@ const SettingRightSide7Com1: React.FC = () => {
         </div>
 
         {/* Password breach check */}
-        <div className="flex items-center space-x-2 text-sm text-gray-500">
+        <div className="flex items-center gap-x-2 text-sm text-gray-500">
           <input type="checkbox" id="password-check" className="h-4 w-4" />
           <span>
             We’ll check your password against known breaches using{" "}
@@ -139,7 +143,7 @@ const SettingRightSide7Com1: React.FC = () => {
         <div className="mt-4">
           <div
             onClick={handleSubmit}
-            className="w-full bg-green-600 text-white text-center py-2 rounded-md cursor-pointer hover:bg-green-700"
+            className="w-full bg-[#10B981] text-white text-center py-2 rounded-md cursor-pointer hover:opacity-90 active:opacity-30"
           >
             Update Password
           </div>

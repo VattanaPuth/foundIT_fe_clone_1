@@ -126,7 +126,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ activeSection, onSectionChang
               onClick={() => handleSidebarItemClick(item.id)} 
               className={`flex items-center gap-x-3 px-3 cursor-pointer transition-colors ${
                 activeSection === item.id 
-                  ? 'text-blue-600 font-semibold bg-blue-50 rounded-lg py-2' 
+                  ? 'text-[#10B981] font-semibold bg-[#ECFDF5] rounded-lg py-2' 
                   : 'hover:text-blue-500'
               }`}
             >
@@ -147,7 +147,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ activeSection, onSectionChang
               onClick={() => handleSidebarItemClick(item.id)}
               className={`flex items-center gap-x-3 px-3 cursor-pointer transition-colors ${
                 activeSection === item.id 
-                  ? 'text-blue-600 font-semibold bg-blue-50 rounded-lg py-2' 
+                  ? 'text-[#10B981] font-semibold bg-[#ECFDF5] rounded-lg py-2' 
                   : 'hover:text-blue-500'
               }`}
             >

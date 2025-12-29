@@ -185,7 +185,7 @@ const SettingRightSide6Com1: React.FC = () => {
 
         {/* Save Changes Button */}
         <div className="mt-6 mb-3 flex justify-end">
-          <div className="inline-flex items-center justify-center w-auto h-10 px-6 py-2 text-base font-semibold text-white bg-green-600 rounded-md cursor-pointer hover:bg-green-700">
+          <div className="inline-flex items-center justify-center w-auto h-10 px-6 py-2 text-base font-semibold text-white bg-[#10B981] rounded-md cursor-pointer hover:bg-green-700">
             Save Changes
           </div>
         </div>
