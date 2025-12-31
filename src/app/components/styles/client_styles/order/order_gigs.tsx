@@ -1,12 +1,18 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useMemo } from "react";
 import SubHeader from "./sub_header";
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
-type OrderStatus = "Active" | "Awaiting approval" | "Completed";
+type OrderStatus =
+  | "Active"
+  | "Awaiting approval"
+  | "Completed"
+  | "Revisions"
+  | "Issues";
 
 type OrderGigAction = {
   text: string;
@@ -62,11 +68,20 @@ const calcPercentFromAmounts = (current?: number, total?: number) => {
 const getStatusColor = (status?: OrderStatus) => {
   switch (status) {
     case "Active":
-      return "bg-emerald-100 text-emerald-700";
+      return "bg-emerald-50 text-emerald-800";
+
+    case "Revisions":
+      return "bg-amber-100 text-amber-800";
+
     case "Awaiting approval":
-      return "bg-yellow-100 text-yellow-700";
+      return "bg-blue-100 text-blue-800";
+
     case "Completed":
-      return "bg-blue-100 text-blue-700";
+      return "bg-green-100 text-green-800";
+
+    case "Issues":
+      return "bg-red-100 text-red-800";
+
     default:
       return "bg-gray-100 text-gray-700";
   }
@@ -191,133 +206,165 @@ const ActionItem = ({ action }: { action: OrderGigAction }) => {
 // ORDER GIG CARD COMPONENT
 // ============================================================================
 
-function OrderGigCard({
-  gig,
-  className = "",
-}: {
-  gig: OrderGig;
-  className?: string;
-}) {
+function OrderGigCard({ gig }: { gig: OrderGig }) {
   const computed = calcPercentFromAmounts(gig.currentAmount, gig.totalAmount);
-  const percent = clampPercent(
-    Number.isFinite(gig.progressPercent as number)
-      ? (gig.progressPercent as number)
-      : computed
-  );
-
+  const percent = clampPercent(gig.progressPercent ?? computed);
   const percentText =
     percent > 0 && percent < 1
       ? `${percent.toFixed(1)}%`
       : `${Math.round(percent)}%`;
 
-  const current = Number.isFinite(gig.currentAmount)
-    ? (gig.currentAmount as number)
-    : 0;
-  const total = Number.isFinite(gig.totalAmount)
-    ? (gig.totalAmount as number)
-    : 0;
+  const current = gig.currentAmount ?? 0;
+  const total = gig.totalAmount ?? 0;
 
-  const actions = gig.actions?.length
+  // Determine if this gig needs special action buttons
+  const isAwaitingApproval = gig.status === "Awaiting approval";
+
+  // Default actions (View details + Message)
+  const defaultActions: OrderGigAction[] = [
+    {
+      text: "View details",
+      href: `/orders/${gig.id}`,
+      icon: <DefaultLinkIcon />,
+    },
+    {
+      text: "Message",
+      onClick: () => console.log("Message", gig.id),
+      icon: <DefaultChatIcon />,
+    },
+  ];
+
+  // Override actions only for "Awaiting approval"
+  const actions = isAwaitingApproval
+    ? [
+        defaultActions[0], // Keep "View details"
+        {
+          text: "Accept delivery",
+          onClick: () => console.log("Accept delivery", gig.id),
+        },
+      ]
+    : gig.actions?.length
     ? gig.actions
-    : [
-        {
-          text: "View details",
-          href: `/orders/${gig.id}`,
-          icon: <DefaultLinkIcon />,
-        },
-        {
-          text: "Message",
-          onClick: () => console.log("Message", gig.id),
-          icon: <DefaultChatIcon />,
-        },
-      ];
+    : defaultActions;
 
   return (
-    <div className={`w-full ${className}`}>
-      <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 md:p-8">
-        <div className="flex flex-col gap-4">
-          {/* Title */}
-          <div>
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-900">
-              {gig.title}
-            </p>
+    <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8">
+      <div className="flex flex-col gap-4">
+        {/* Title */}
+        <p className="text-xl md:text-2xl font-semibold text-gray-900">
+          {gig.title}
+        </p>
+
+        {/* Author */}
+        <div className="flex flex-wrap items-center gap-x-2 text-sm text-gray-600">
+          <span className="text-gray-500">by</span>
+          <span className="text-teal-600 font-medium">{gig.author}</span>
+          {gig.authorRole && (
+            <>
+              <span className="text-gray-600">•</span>
+              <span className="text-gray-600">{gig.authorRole}</span>
+            </>
+          )}
+        </div>
+
+        {/* Meta info */}
+        {gig.meta?.length ? (
+          <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+            {gig.meta.map((m, idx) => (
+              <React.Fragment key={idx}>
+                {idx > 0 && <span className="text-gray-300">·</span>}
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">{m.icon ?? "•"}</span>
+                  <span>{m.text}</span>
+                </div>
+              </React.Fragment>
+            ))}
           </div>
+        ) : null}
 
-          {/* Author */}
-          <div className="flex flex-wrap items-center gap-x-2 -mt-6 text-sm text-gray-600">
-            <span className="text-gray-500">by</span>
-            <span className="text-teal-600 font-medium">{gig.author}</span>
-            {gig.authorRole ? (
-              <>
-                <span className="text-gray-600">•</span>
-                <span className="text-gray-600">{gig.authorRole}</span>
-              </>
-            ) : null}
-          </div>
+        {/* Status Badge */}
+        {(() => {
+          const isIssue = gig.hasIssues === true;
+          const displayStatus = isIssue ? "Issues" : gig.status ?? "Unknown";
+          const colorStatus = isIssue ? "Issues" : gig.status;
 
-          {/* Meta */}
-          {gig.meta?.length ? (
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-600">
-              {gig.meta.map((m, idx) => (
-                <React.Fragment key={idx}>
-                  {idx > 0 && <span className="text-gray-300">·</span>}
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-400">{m.icon ?? "•"}</span>
-                    <span className="whitespace-nowrap">{m.text}</span>
-                  </div>
-                </React.Fragment>
-              ))}
-            </div>
-          ) : null}
-
-          {/* Status */}
-          <div className="flex items-start">
+          return (
             <span
               className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                gig.status
+                colorStatus
               )}`}
             >
-              {gig.status ?? "Unknown"}
+              {displayStatus}
             </span>
+          );
+        })()}
+
+        {/* Progress */}
+        <div className="flex flex-col gap-2 mt-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-600">Progress</span>
+            <span className="font-semibold text-gray-900">{percentText}</span>
+          </div>
+          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-emerald-500 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${percent}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Amount + Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mt-4 pt-4 border-t border-gray-200">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-3xl font-bold text-gray-900">
+                ${current.toLocaleString()}
+              </span>
+              <span className="text-gray-400">/</span>
+              <span className="text-lg text-gray-500">
+                ${total.toLocaleString()}
+              </span>
+            </div>
+            {gig.rateType && (
+              <span className="text-sm text-gray-500 capitalize">
+                {gig.rateType}
+              </span>
+            )}
           </div>
 
-          {/* Progress */}
-          <div className="flex flex-col gap-2 mt-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">Progress</span>
-              <span className="font-semibold text-gray-900">{percentText}</span>
-            </div>
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3">
+            {/* Always show "View details" as secondary button */}
+            <ActionItem action={actions[0]} />
 
-            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-emerald-500 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${percent}%` }}
-              />
-            </div>
-          </div>
+            {/* Special prominent "Accept delivery" button */}
+            {isAwaitingApproval && (
+              <button
+                onClick={actions[1].onClick}
+                className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 active:bg-emerald-800 transition shadow-sm"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                Accept delivery
+              </button>
+            )}
 
-          {/* Amount + Actions */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-2 pt-4 border-t border-gray-200">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-baseline gap-2 flex-wrap">
-                <span className="text-2xl sm:text-3xl font-bold text-gray-900">
-                  ${current.toLocaleString()}
-                </span>
-                <span className="text-gray-400">/</span>
-                <span className="text-base sm:text-lg text-gray-500">
-                  ${total.toLocaleString()}
-                </span>
-              </div>
-              {gig.rateType ? (
-                <span className="text-sm text-gray-500">{gig.rateType}</span>
-              ) : null}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-              {actions.map((a, idx) => (
-                <ActionItem key={idx} action={a} />
-              ))}
-            </div>
+            {/* Show "Message" button for all other statuses */}
+            {!isAwaitingApproval && actions[1]?.text === "Message" && (
+              <ActionItem action={actions[1]} />
+            )}
           </div>
         </div>
       </div>
@@ -330,75 +377,162 @@ function OrderGigCard({
 // ============================================================================
 
 const exampleGigs: OrderGig[] = [
+  // 1. Active - Normal ongoing gig
   {
     id: "1",
     title: "Mobile App Development - iOS & Android",
-    author: "ma ria santos",
+    author: "Maria Santos",
     authorRole: "Full-stack mobile developer",
     meta: [
       { icon: <DefaultDocIcon />, text: "Contract" },
-      { icon: <DefaultClockIcon />, text: "Week of Nov 4–10" },
+      { icon: <DefaultClockIcon />, text: "Due Jan 15, 2026" },
       { text: "Updated 2 hours ago" },
     ],
     status: "Active",
-    currentAmount: 85,
-    totalAmount: 10000,
-    rateType: "per hour",
-    hasIssues: true,
-    updatedAt: new Date("2024-12-29T10:00:00"),
-    dueDate: new Date("2025-01-15"),
+    currentAmount: 6200,
+    totalAmount: 12000,
+    rateType: "hourly",
+    hasIssues: false,
+    updatedAt: new Date("2025-12-31T09:30:00"),
+    dueDate: new Date("2026-01-15"),
   },
+
+  // 2. Awaiting approval - Matches your screenshot perfectly
   {
     id: "2",
-    title: "Landing Page UI/UX Redesign for SaaS",
-    author: "john doe",
-    authorRole: "UI/UX designer",
+    title: "E-commerce Dashboard Redesign",
+    author: "John Doe",
+    authorRole: "Senior UI/UX Designer",
     meta: [
-      { icon: <DefaultDocIcon />, text: "Fixed price" },
-      { icon: <DefaultClockIcon />, text: "2 weeks" },
-      { text: "Updated yesterday" },
+      { icon: <DefaultDocIcon />, text: "Milestone 2: High-fidelity mockups" },
+      { icon: <DefaultClockIcon />, text: "Nov 15, 2025" },
+      { text: "Updated 5 minutes ago" },
     ],
     status: "Awaiting approval",
-    currentAmount: 2500,
-    totalAmount: 5000,
-    rateType: "fixed",
-    updatedAt: new Date("2024-12-28T10:00:00"),
-    dueDate: new Date("2025-01-10"),
+    currentAmount: 3200,
+    totalAmount: 8000,
+    rateType: "funded in escrow",
+    hasIssues: false,
+    updatedAt: new Date("2025-12-31T11:55:00"),
+    dueDate: new Date("2026-01-10"),
   },
+
+  // 3. Completed
   {
     id: "3",
     title: "SEO Audit + Content Plan (3 months)",
-    author: "sophia lee",
-    authorRole: "SEO specialist",
+    author: "Sophia Lee",
+    authorRole: "SEO Specialist",
     meta: [
       { icon: <DefaultDocIcon />, text: "Contract" },
-      { icon: <DefaultClockIcon />, text: "3 months" },
-      { text: "Updated 5 days ago" },
+      { icon: <DefaultClockIcon />, text: "Completed on time" },
+      { text: "Updated Dec 20, 2025" },
     ],
     status: "Completed",
-    currentAmount: 10000,
-    totalAmount: 10000,
-    rateType: "project",
-    updatedAt: new Date("2024-12-24T10:00:00"),
-    dueDate: new Date("2025-03-01"),
+    currentAmount: 15000,
+    totalAmount: 15000,
+    rateType: "fixed price",
+    hasIssues: false,
+    updatedAt: new Date("2025-12-20T14:00:00"),
   },
+
+  // 4. Active with progress override
   {
     id: "4",
     title: "Data Dashboard (React + API Integration)",
-    author: "kevin tran",
-    authorRole: "Frontend engineer",
+    author: "Kevin Tran",
+    authorRole: "Frontend Engineer",
     meta: [
       { icon: <DefaultDocIcon />, text: "Milestone" },
-      { icon: <DefaultClockIcon />, text: "Week of Dec 1–7" },
-      { text: "Updated 10 minutes ago" },
+      { icon: <DefaultClockIcon />, text: "Due Jan 5, 2026" },
+      { text: "Updated 30 minutes ago" },
     ],
     status: "Active",
     progressPercent: 72,
     currentAmount: 3600,
     totalAmount: 5000,
     rateType: "milestone",
-    updatedAt: new Date("2024-12-29T11:50:00"),
-    dueDate: new Date("2025-01-05"),
+    hasIssues: false,
+    updatedAt: new Date("2025-12-31T11:30:00"),
+    dueDate: new Date("2026-01-05"),
+  },
+
+  // 5. Revisions - Needs changes (yellow badge)
+  {
+    id: "5",
+    title: "Brand Identity & Logo Design",
+    author: "Emma Chen",
+    authorRole: "Graphic Designer",
+    meta: [
+      { icon: <DefaultDocIcon />, text: "Fixed price" },
+      { icon: <DefaultClockIcon />, text: "Revisions requested" },
+      { text: "Updated 1 day ago" },
+    ],
+    status: "Revisions",
+    currentAmount: 1800,
+    totalAmount: 2000,
+    rateType: "fixed",
+    hasIssues: false,
+    updatedAt: new Date("2025-12-30T16:45:00"),
+    dueDate: new Date("2026-01-08"),
+  },
+
+  // 6. Issues - Has problems (red badge + counts in "Issues" tab)
+  {
+    id: "6",
+    title: "Backend API Development (Node.js + PostgreSQL)",
+    author: "Alex Rivera",
+    authorRole: "Backend Developer",
+    meta: [
+      { icon: <DefaultDocIcon />, text: "Contract" },
+      { icon: <DefaultClockIcon />, text: "Due Jan 20, 2026" },
+      { text: "Updated 4 hours ago" },
+    ],
+    status: "Active",
+    currentAmount: 4500,
+    totalAmount: 9000,
+    rateType: "hourly",
+    hasIssues: true,  // This will show in "Issues" tab and can have red badge if you map status to "Issues"
+    updatedAt: new Date("2025-12-31T08:00:00"),
+    dueDate: new Date("2026-01-20"),
+  },
+
+  // 7. Another Revisions example
+  {
+    id: "7",
+    title: "Social Media Content Calendar (Q1 2026)",
+    author: "Liam Park",
+    authorRole: "Content Strategist",
+    meta: [
+      { icon: <DefaultDocIcon />, text: "Monthly retainer" },
+      { icon: <DefaultClockIcon />, text: "Feedback pending" },
+      { text: "Updated yesterday" },
+    ],
+    status: "Revisions",
+    currentAmount: 1200,
+    totalAmount: 3000,
+    rateType: "monthly",
+    hasIssues: false,
+    updatedAt: new Date("2025-12-30T10:20:00"),
+  },
+
+  // 8. One more Completed for balance
+  {
+    id: "8",
+    title: "Website Migration to Next.js",
+    author: "Olivia Grant",
+    authorRole: "Full-stack Developer",
+    meta: [
+      { icon: <DefaultDocIcon />, text: "Project" },
+      { icon: <DefaultClockIcon />, text: "Completed ahead of schedule" },
+      { text: "Finalized Dec 15, 2025" },
+    ],
+    status: "Completed",
+    currentAmount: 8000,
+    totalAmount: 8000,
+    rateType: "fixed",
+    hasIssues: false,
+    updatedAt: new Date("2025-12-15T12:00:00"),
   },
 ];
 
@@ -411,38 +545,72 @@ export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState("All");
   const [sortBy, setSortBy] = useState("recently_updated");
 
+  // Compute dynamic tab counts
+  const tabCounts = useMemo(() => {
+    const counts = {
+      All: exampleGigs.length,
+      Active: 0,
+      Revisions: 0,              
+      "Awaiting approval": 0,
+      Completed: 0,
+      Issues: 0,
+    };
+
+    exampleGigs.forEach((gig) => {
+      if (gig.status === "Active") counts.Active++;
+      if (gig.status === "Revisions") counts.Revisions++;               
+      if (gig.status === "Awaiting approval") counts["Awaiting approval"]++;
+      if (gig.status === "Completed") counts.Completed++;
+      if (gig.hasIssues) counts.Issues++;
+    });
+
+    return counts;
+  }, []);
+
+  // Define tabs
+  const tabs = useMemo<Tab[]>(
+    () => [
+      { label: "All", count: tabCounts.All },
+      { label: "Active", count: tabCounts.Active },
+      { label: "Revisions", count: tabCounts.Revisions },
+      { label: "Awaiting approval", count: tabCounts["Awaiting approval"] },
+      { label: "Completed", count: tabCounts.Completed },
+      { label: "Issues", count: tabCounts.Issues, variant: "danger" },
+    ],
+    [tabCounts]
+  );
+
   // Filter gigs based on active tab
-  const filteredGigs = exampleGigs.filter((gig) => {
-    if (activeTab === "All") return true;
-    if (activeTab === "Active") return gig.status === "Active";
-    if (activeTab === "Completed") return gig.status === "Completed";
-    if (activeTab === "Awaiting approval") return gig.status === "Awaiting approval";
-    if (activeTab === "Issues") return gig.hasIssues === true;
-    if (activeTab === "Revisions") return false;
-    return true;
-  });
+  const filteredGigs = useMemo(() => {
+    return exampleGigs.filter((gig) => {
+      if (activeTab === "All") return true;
+      if (activeTab === "Active") return gig.status === "Active";
+      if (activeTab === "Completed") return gig.status === "Completed";
+      if (activeTab === "Awaiting approval") return gig.status === "Awaiting approval";
+      if (activeTab === "Revisions") return gig.status === "Revisions"; // Fixed!
+      if (activeTab === "Issues") return gig.hasIssues === true || gig.status === "Issues";
+      return false;
+    });
+  }, [activeTab]);
 
   // Sort gigs based on sortBy
-  const sortedGigs = [...filteredGigs].sort((a, b) => {
-    switch (sortBy) {
-      case "highest_amount":
-        // Sort by CURRENT amount (highest first)
-        return (b.currentAmount || 0) - (a.currentAmount || 0);
-
-      case "due_soon":
-        // Sort by due date (earliest first)
-        if (!a.dueDate) return 1;
-        if (!b.dueDate) return -1;
-        return a.dueDate.getTime() - b.dueDate.getTime();
-
-      case "recently_updated":
-      default:
-        // Sort by updated date (most recent first)
-        if (!a.updatedAt) return 1;
-        if (!b.updatedAt) return -1;
-        return b.updatedAt.getTime() - a.updatedAt.getTime();
-    }
-  });
+  const sortedGigs = useMemo(() => {
+    return [...filteredGigs].sort((a, b) => {
+      switch (sortBy) {
+        case "highest_amount":
+          return (b.currentAmount || 0) - (a.currentAmount || 0);
+        case "due_soon":
+          if (!a.dueDate) return 1;
+          if (!b.dueDate) return -1;
+          return a.dueDate.getTime() - b.dueDate.getTime();
+        case "recently_updated":
+        default:
+          if (!a.updatedAt) return 1;
+          if (!b.updatedAt) return -1;
+          return (b.updatedAt?.getTime() || 0) - (a.updatedAt?.getTime() || 0);
+      }
+    });
+  }, [filteredGigs, sortBy]);
 
   return (
     <div className="w-full h-screen">
@@ -452,6 +620,7 @@ export default function OrdersPage() {
         onSearchChange={setSearchQuery}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        tabs={tabs}
         sortBy={sortBy}
         onSortChange={setSortBy}
       />

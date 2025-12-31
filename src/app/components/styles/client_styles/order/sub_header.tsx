@@ -19,7 +19,7 @@ type SubHeaderProps = {
   onSearchChange?: (query: string) => void;
   activeTab?: string;
   onTabChange?: (label: string) => void;
-  tabs?: Tab[];
+  tabs: Tab[];
   title?: string;
   searchPlaceholder?: string;
   sortBy?: string;
@@ -32,14 +32,7 @@ export default function SubHeader({
   onSearchChange = () => {},
   activeTab = "All",
   onTabChange = () => {},
-  tabs = [
-    { label: "All", count: 13 },
-    { label: "Active", count: 6 },
-    { label: "Revisions", count: 1 },
-    { label: "Awaiting approval", count: 2 },
-    { label: "Completed", count: 3 },
-    { label: "Issues", count: 1, variant: "danger" },
-  ],
+  tabs,
   title = "My Orders",
   searchPlaceholder = "Search jobs, talent...",
   sortBy = "recently_updated",
@@ -180,3 +173,4 @@ export default function SubHeader({
         </div>
     )
 }
+
