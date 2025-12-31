@@ -62,7 +62,7 @@ const clampPercent = (n: number) => {
 const calcPercentFromAmounts = (current?: number, total?: number) => {
   if (!Number.isFinite(current) || !Number.isFinite(total)) return 0;
   if (!total || total <= 0) return 0;
-  return (current / total) * 100;
+  return ((current as number) / total) * 100;
 };
 
 const getStatusColor = (status?: OrderStatus) => {
@@ -251,7 +251,7 @@ function OrderGigCard({ gig }: { gig: OrderGig }) {
     <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8">
       <div className="flex flex-col gap-4">
         {/* Title */}
-        <p className="text-xl md:text-2xl font-semibold text-gray-900">
+        <p className="text-xl md:text-2xl lg:text-2xl text-gray-900">
           {gig.title}
         </p>
 
@@ -290,7 +290,7 @@ function OrderGigCard({ gig }: { gig: OrderGig }) {
 
           return (
             <span
-              className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+              className={`inline-flex px-3 py-1 w-fit rounded-full text-xs font-medium ${getStatusColor(
                 colorStatus
               )}`}
             >
@@ -339,26 +339,15 @@ function OrderGigCard({ gig }: { gig: OrderGig }) {
 
             {/* Special prominent "Accept delivery" button */}
             {isAwaitingApproval && (
-              <button
+              <p
                 onClick={actions[1].onClick}
-                className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 active:bg-emerald-800 transition shadow-sm"
+                className="flex items-center gap-x-2 px-3 py-1.5 mt-3 active:opacity-30 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 active:bg-emerald-800 transition shadow-sm"
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
+                <svg className="w-4 h-4 mt-0.5" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 10.0857V11.0057C20.9988 13.1621 20.3005 15.2604 19.0093 16.9875C17.7182 18.7147 15.9033 19.9782 13.8354 20.5896C11.7674 21.201 9.55726 21.1276 7.53447 20.3803C5.51168 19.633 3.78465 18.2518 2.61096 16.4428C1.43727 14.6338 0.879791 12.4938 1.02168 10.342C1.16356 8.19029 1.99721 6.14205 3.39828 4.5028C4.79935 2.86354 6.69279 1.72111 8.79619 1.24587C10.8996 0.770634 13.1003 0.988061 15.07 1.86572M21 3L11 13.01L8 10.01" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 Accept delivery
-              </button>
+              </p>
             )}
 
             {/* Show "Message" button for all other statuses */}
@@ -492,7 +481,7 @@ const exampleGigs: OrderGig[] = [
     currentAmount: 4500,
     totalAmount: 9000,
     rateType: "hourly",
-    hasIssues: true,  // This will show in "Issues" tab and can have red badge if you map status to "Issues"
+    hasIssues: true, // This will show in "Issues" tab and can have red badge if you map status to "Issues"
     updatedAt: new Date("2025-12-31T08:00:00"),
     dueDate: new Date("2026-01-20"),
   },
@@ -550,7 +539,7 @@ export default function OrdersPage() {
     const counts = {
       All: exampleGigs.length,
       Active: 0,
-      Revisions: 0,              
+      Revisions: 0,
       "Awaiting approval": 0,
       Completed: 0,
       Issues: 0,
@@ -558,7 +547,7 @@ export default function OrdersPage() {
 
     exampleGigs.forEach((gig) => {
       if (gig.status === "Active") counts.Active++;
-      if (gig.status === "Revisions") counts.Revisions++;               
+      if (gig.status === "Revisions") counts.Revisions++;
       if (gig.status === "Awaiting approval") counts["Awaiting approval"]++;
       if (gig.status === "Completed") counts.Completed++;
       if (gig.hasIssues) counts.Issues++;
@@ -586,9 +575,11 @@ export default function OrdersPage() {
       if (activeTab === "All") return true;
       if (activeTab === "Active") return gig.status === "Active";
       if (activeTab === "Completed") return gig.status === "Completed";
-      if (activeTab === "Awaiting approval") return gig.status === "Awaiting approval";
+      if (activeTab === "Awaiting approval")
+        return gig.status === "Awaiting approval";
       if (activeTab === "Revisions") return gig.status === "Revisions"; // Fixed!
-      if (activeTab === "Issues") return gig.hasIssues === true || gig.status === "Issues";
+      if (activeTab === "Issues")
+        return gig.hasIssues === true || gig.status === "Issues";
       return false;
     });
   }, [activeTab]);
