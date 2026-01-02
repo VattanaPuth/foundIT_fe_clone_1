@@ -1,319 +1,314 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface TeamMember {
   id: string;
   name: string;
-  avatar?: string;
+  avatarUrl?: string;
   rating: number;
   reviewCount: number;
   budget: number;
   progress: number;
+  isVerified?: boolean;
 }
 
 interface SubHeaderOrderIdProps {
-  orderId: string;
-  projectTitle: string;
-  teamMembers: TeamMember[];
-  status: 'Active' | 'Completed' | 'Pending' | 'Cancelled';
-  dueDate?: string;
-  timezone?: string;
-  createdBy?: {
-    name: string;
-    avatar?: string;
-    rating: number;
-    reviewCount: number;
-    timezone: string;
-  };
-  activeWeek?: string;
+  orderId?: string;
+  projectTitle?: string;
+  teamMembers?: TeamMember[];
+  selectedMemberId?: string;
+  onMemberSelect?: (memberId: string) => void;
+  status?: 'Active' | 'Completed' | 'Pending' | 'Cancelled';
+  deadline?: string;
+  nda?: boolean;
   onBackClick?: () => void;
   onMessageClick?: () => void;
-  onReportIssueClick?: () => void;
+  onReportClick?: () => void;
 }
 
-const SubHeaderOrderId: React.FC<SubHeaderOrderIdProps> = ({
-  orderId,
-  projectTitle,
-  teamMembers,
-  status,
-  dueDate,
-  timezone,
-  createdBy,
-  activeWeek,
+export default function SubHeaderOrderId({
+  orderId = '2.5',
+  projectTitle = 'Full-Stack Web Application - E-Learning Platform',
+  teamMembers = [],
+  selectedMemberId: externalSelectedId,
+  onMemberSelect,
+  status = 'Active',
+  deadline = 'Dec 1, 2024',
+  nda = true,
   onBackClick,
   onMessageClick,
-  onReportIssueClick,
-}) => {
-    
-  // Show team members section only if there are 2 or more members
-  const showTeamMembers = teamMembers.length >= 2;
-  
-  // If only one member, use them as the main display
-  const mainMember = teamMembers.length === 1 ? teamMembers[0] : null;
+  onReportClick,
+}: SubHeaderOrderIdProps) {
+  // Internal state if not controlled externally
+  const [internalSelectedId, setInternalSelectedId] = useState<string>('default-1');
+  const selectedId = externalSelectedId ?? internalSelectedId;
+  const setSelectedId = onMemberSelect ?? setInternalSelectedId;
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'active':
-        return 'bg-green-100 text-green-700';
-      case 'completed':
-        return 'bg-blue-100 text-blue-700';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-700';
-      case 'cancelled':
-        return 'bg-red-100 text-red-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
+  const defaultMembers: TeamMember[] = [
+    {
+      id: 'default-1',
+      name: 'James Foster',
+      rating: 4.9,
+      reviewCount: 89,
+      budget: 8500,
+      progress: 70,
+      isVerified: true,
+    },
+    {
+      id: 'default-2',
+      name: 'Rachel Kim',
+      rating: 4.8,
+      reviewCount: 56,
+      budget: 6000,
+      progress: 65,
+      isVerified: false,
+    },
+    {
+      id: 'default-3',
+      name: 'David Chen',
+      rating: 5.0,
+      reviewCount: 43,
+      budget: 5500,
+      progress: 80,
+      isVerified: true,
+    },
+  ];
+
+  const displayTeamMembers = teamMembers.length > 0 ? teamMembers : defaultMembers;
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
   };
 
-  const getProgressColor = (progress: number) => {
-    if (progress >= 80) return 'bg-green-500';
-    if (progress >= 50) return 'bg-blue-500';
-    if (progress >= 30) return 'bg-yellow-500';
-    return 'bg-red-500';
+  const getStatusColor = (status: string) => {
+    const colors = {
+      Active: 'bg-emerald-50 text-emerald-700',
+      Completed: 'bg-blue-50 text-blue-700',
+      Pending: 'bg-amber-50 text-amber-700',
+      Cancelled: 'bg-red-50 text-red-700',
+    };
+    return colors[status as keyof typeof colors] || colors.Active;
   };
 
   return (
-    <div className="w-full bg-white border-b border-gray-200">
-      {/* Back Navigation and Order Info */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-          <div 
-            onClick={onBackClick}
-            className="flex items-center gap-2 cursor-pointer hover:text-gray-900 transition-colors"
-          >
-            <svg 
-              className="w-4 h-4" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
+    <div className="w-full bg-white">
+      {/* Header Navigation */}
+      <div className="w-full border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
+            <div
+              className="flex items-center gap-2 text-gray-700 hover:text-gray-900 cursor-pointer transition-colors"
+              onClick={onBackClick}
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M15 19l-7-7 7-7" 
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              <span className="text-sm sm:text-base font-medium">Back to Orders</span>
+            </div>
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+            <span className="text-sm sm:text-base text-gray-600">Order #{orderId}</span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div
+              className="flex items-center gap-2 text-gray-700 hover:text-gray-900 cursor-pointer transition-colors"
+              onClick={onMessageClick}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+              <span className="text-sm sm:text-base font-medium hidden sm:inline">Message</span>
+            </div>
+            <div
+              className="flex items-center gap-2 text-red-600 hover:text-red-700 cursor-pointer transition-colors"
+              onClick={onReportClick}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"
+                />
+              </svg>
+              <span className="text-sm sm:text-base font-medium hidden sm:inline">Report issue</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Project Title */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <div className="text-xl sm:text-2xl font-semibold text-gray-900">{projectTitle}</div>
+      </div>
+
+      {/* Team Members Section */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 pb-6">
+        <div className="bg-emerald-50 rounded-lg p-4 mb-6">
+          <div className="flex items-center gap-2 text-emerald-800">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
               />
             </svg>
-            <span>Back to Orders</span>
+            <span className="text-sm sm:text-base font-medium">
+              {displayTeamMembers.length} Team {displayTeamMembers.length === 1 ? 'Member' : 'Members'} Working on This Project
+            </span>
           </div>
-          <svg 
-            className="w-4 h-4" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
-              d="M9 5l7 7-7 7" 
-            />
-          </svg>
-          <span className="text-gray-900">Order #{orderId}</span>
         </div>
 
-        {/* Single User Layout */}
-        {mainMember && !showTeamMembers && (
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
-                {mainMember.avatar ? (
-                  <img 
-                    src={mainMember.avatar} 
-                    alt={mainMember.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-purple-500 text-white text-lg font-semibold">
-                    {mainMember.name.charAt(0).toUpperCase()}
+        {/* Team Member Cards - Horizontal Scroll */}
+        <div className="flex gap-4 overflow-x-auto pb-4 scroll-smooth scrollbar-hide">
+          <style jsx>{`
+            .scrollbar-hide::-webkit-scrollbar {
+              display: none;
+            }
+            .scrollbar-hide {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+          `}</style>
+
+          {displayTeamMembers.map((member) => {
+            const isSelected = selectedId === member.id;
+
+            return (
+              <div
+                key={member.id}
+                onClick={() => setSelectedId(member.id)}
+                className={`
+                  bg-white rounded-xl p-6 flex-shrink-0 w-[280px] sm:w-[320px] cursor-pointer transition-all duration-300
+                  ${isSelected 
+                    ? 'border-4 border-emerald-500 shadow-xl ring-4 ring-emerald-100' 
+                    : 'border-2 border-emerald-200 hover:border-emerald-400 hover:shadow-lg'
+                  }
+                `}
+              >
+                {/* Member Info */}
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="relative">
+                    {member.avatarUrl ? (
+                      <img
+                        src={member.avatarUrl}
+                        alt={member.name}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-semibold text-lg">
+                        {member.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                      </div>
+                    )}
+                    {member.isVerified && (
+                      <div className="absolute -bottom-1 -right-1 bg-emerald-500 rounded-full p-0.5">
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900 text-base">{member.name}</div>
+                    <div className="flex items-center gap-1 text-sm">
+                      <svg className="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <span className="font-semibold text-gray-900">{member.rating.toFixed(1)}</span>
+                      <span className="text-gray-500">({member.reviewCount})</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Budget */}
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600">Budget</span>
+                  <span className="text-base font-semibold text-teal-600">
+                    {formatCurrency(member.budget)}
+                  </span>
+                </div>
+
+                {/* Progress */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Progress</span>
+                    <span className="text-sm font-semibold text-gray-900">{member.progress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-emerald-400 to-teal-500 h-full rounded-full transition-all duration-300"
+                      style={{ width: `${member.progress}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Selected Indicator */}
+                {isSelected && (
+                  <div className="mt-4 text-center">
+                    <span className="inline-flex items-center gap-2 bg-emerald-500 text-white text-xs font-medium px-4 py-2 rounded-full">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Viewing this member
+                    </span>
                   </div>
                 )}
               </div>
-              
-              <div className="flex-1">
-                <div className="text-xl font-semibold text-gray-900 mb-1">
-                  {projectTitle}
-                </div>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
-                  <div className="flex items-center gap-1">
-                    <span>by</span>
-                    <span className="text-gray-900 font-medium">{mainMember.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <svg className="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-                    </svg>
-                    <span className="font-medium text-gray-900">{mainMember.rating}</span>
-                    <span>({mainMember.reviewCount})</span>
-                  </div>
-                  {timezone && (
-                    <div className="flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>{timezone}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+            );
+          })}
+        </div>
 
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <div 
-                onClick={onMessageClick}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-              >
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                <span className="text-gray-700">Message</span>
-              </div>
-              
-              <div 
-                onClick={onReportIssueClick}
-                className="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-gray-50 transition-colors rounded-lg"
-              >
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
-                </svg>
-                <span className="text-red-600">Report issue</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Multiple Users Layout */}
-        {showTeamMembers && (
-          <>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-              <div className="text-xl font-semibold text-gray-900">
-                {projectTitle}
-              </div>
-              
-              <div className="flex items-center gap-3 flex-shrink-0">
-                <div 
-                  onClick={onMessageClick}
-                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                >
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                  <span className="text-gray-700">Message</span>
-                </div>
-                
-                <div 
-                  onClick={onReportIssueClick}
-                  className="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-gray-50 transition-colors rounded-lg"
-                >
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
-                  </svg>
-                  <span className="text-red-600">Report issue</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Team Members Section */}
-            <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 mb-4">
-              <div className="flex items-center gap-2 text-green-800 text-sm font-medium">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <span>{teamMembers.length} Team Members Working on This Project</span>
-              </div>
-            </div>
-
-            {/* Team Members Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {teamMembers.map((member) => (
-                <div 
-                  key={member.id}
-                  className="border border-gray-200 rounded-lg p-4 bg-white hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-start gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
-                      {member.avatar ? (
-                        <img 
-                          src={member.avatar} 
-                          alt={member.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-purple-500 text-white text-lg font-semibold">
-                          {member.name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="text-base font-semibold text-gray-900 truncate">
-                        {member.name}
-                      </div>
-                      <div className="flex items-center gap-1 text-sm">
-                        <svg className="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                          <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-                        </svg>
-                        <span className="font-medium text-gray-900">{member.rating}</span>
-                        <span className="text-gray-500">({member.reviewCount})</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Budget</span>
-                      <span className="font-semibold text-green-600">
-                        ${member.budget.toLocaleString()}
-                      </span>
-                    </div>
-                    
-                    <div>
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-gray-600">Progress</span>
-                        <span className="font-semibold text-gray-900">{member.progress}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                        <div 
-                          className={`h-full rounded-full transition-all duration-300 ${getProgressColor(member.progress)}`}
-                          style={{ width: `${member.progress}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Status and Date Info */}
-        <div className="flex flex-wrap items-center gap-3 mt-4 text-sm">
-          <div className={`px-3 py-1 rounded-full font-medium ${getStatusColor(status)}`}>
+        {/* Status Bar */}
+        <div className="flex items-center gap-4 mt-6 flex-wrap">
+          <div className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColor(status)}`}>
             {status}
           </div>
-          
-          {activeWeek && (
-            <div className="flex items-center gap-2 text-gray-600">
+          <div className="flex items-center gap-2 text-gray-600 text-sm">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span>{deadline}</span>
+          </div>
+          {nda && (
+            <div className="flex items-center gap-2 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-md text-sm font-medium">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{activeWeek}</span>
-            </div>
-          )}
-          
-          {dueDate && !activeWeek && (
-            <div className="flex items-center gap-2 text-gray-600">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span>{dueDate}</span>
-            </div>
-          )}
-          
-          {timezone && showTeamMembers && (
-            <div className="flex items-center gap-2 text-purple-600">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                />
               </svg>
               <span>NDA</span>
             </div>
@@ -322,7 +317,4 @@ const SubHeaderOrderId: React.FC<SubHeaderOrderIdProps> = ({
       </div>
     </div>
   );
-};
-
-export default SubHeaderOrderId;
-
+}
