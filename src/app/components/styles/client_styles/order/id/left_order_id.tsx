@@ -56,6 +56,14 @@ export default function LeftOrderId({ selectedMemberId = 'user_002' }: LeftOrder
   const [visibleActivities, setVisibleActivities] = useState(5);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDeliveryIndex, setSelectedDeliveryIndex] = useState<number | null>(null);
+  const [formData, setFormData] = useState({
+    brandName: '',
+    targetAudience: '',
+    colorPreferences: '',
+    attachments: null as File[] | null,
+  });
+  const [formStep, setFormStep] = useState<'confirm' | 'form' | 'success'>('confirm');
+  const [dragActive, setDragActive] = useState(false);
 
   // Per-member data (in real app, fetch from backend using selectedMemberId)
   const [memberData, setMemberData] = useState<Record<string, MemberData>>({
@@ -230,42 +238,92 @@ export default function LeftOrderId({ selectedMemberId = 'user_002' }: LeftOrder
     { id: 'timeline', label: 'Timeline' },
     { id: 'files', label: 'Files' },
     { id: 'invoices', label: 'Invoices' },
-  ];
+  ] as const;
 
-  const [delivery, setDelivery] = useState({ isApproved: false });
-
-  // Handle approve button click
-  const approveDelivery = () => {
-    setDelivery({ ...delivery, isApproved: true });
-    setIsModalOpen(false);  // Close modal after approval
+  const handleApproveClick = (index: number) => {
+    setSelectedDeliveryIndex(index);
+    setFormStep('confirm');
+    setIsModalOpen(true);
   };
 
-  // Handle cancel button click
-  const cancelApproval = () => {
-    setIsModalOpen(false);  // Just close the modal
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    setSelectedDeliveryIndex(null);
+    setFormStep('confirm');
+    setFormData({
+      brandName: '',
+      targetAudience: '',
+      colorPreferences: '',
+      attachments: null,
+    });
   };
 
-  // const approveHours = (index: number) => {
-  //   // Update delivery's approval status
-  //   const updatedDeliveries = [...data.deliveries];
-  //   updatedDeliveries[index].isApproved = true;
+  const handleAcceptConfirm = () => {
+    setFormStep('form');
+  };
 
-  //   // Update memberData in state
-  //   setMemberData(prevData => ({
-  //     ...prevData,
-  //     [selectedMemberId]: {
-  //       ...prevData[selectedMemberId],
-  //       deliveries: updatedDeliveries,
-  //     },
-  //   }));
+  const handleFormChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-  //   setIsModalOpen(false); // Close the modal after approval
-  //   setSelectedDeliveryIndex(null); // Reset the selected delivery index after approval
-  // };
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setFormData({ ...formData, attachments: Array.from(e.dataTransfer.files) });
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFormData({ ...formData, attachments: Array.from(e.target.files) });
+    }
+  };
+
+  const handleSubmitRequirements = () => {
+    if (selectedDeliveryIndex !== null) {
+      const updatedDeliveries = [...data.deliveries];
+      updatedDeliveries[selectedDeliveryIndex].isApproved = true;
+      setMemberData((prev) => ({
+        ...prev,
+        [selectedMemberId]: {
+          ...prev[selectedMemberId],
+          deliveries: updatedDeliveries,
+        },
+      }));
+    }
+    setFormStep('success');
+  };
+
+  const handleSuccessClose = () => {
+    setIsModalOpen(false);
+    setSelectedDeliveryIndex(null);
+    setFormStep('confirm');
+    setFormData({
+      brandName: '',
+      targetAudience: '',
+      colorPreferences: '',
+      attachments: null,
+    });
+  };
 
   const loadMoreActivities = () => {
-    setVisibleActivities((prev) => prev + 5); // Increase the number of activities to show by 5
+    setVisibleActivities((prev) => prev + 5);
   };
+
+  const answeredCount = [formData.brandName, formData.targetAudience].filter(Boolean).length;
 
   return (
     <div className="w-full h-screen">
@@ -274,7 +332,7 @@ export default function LeftOrderId({ selectedMemberId = 'user_002' }: LeftOrder
         {tabs.map((tab) => (
           <div
             key={tab.id}
-            onClick={() => setCurrentTab(tab.id as any)}
+            onClick={() => setCurrentTab(tab.id)}
             className={`flex-1 px-6 py-4 text-center font-medium text-sm sm:text-base cursor-pointer transition-all relative ${
               currentTab === tab.id ? 'border-[#009966] border-b-2 border-t border-r border-l text-[#009966]' : 'text-gray-600 hover:text-gray-900'
             }`}
@@ -362,44 +420,209 @@ export default function LeftOrderId({ selectedMemberId = 'user_002' }: LeftOrder
 
                     <div className='w-fit active:opacity-30'>
                       {!delivery.isApproved && (
-                        <div className='flex items-center mt-3 gap-x-3 bg-emerald-600 h-10 px-3 text-white rounded-lg hover:bg-emerald-700 transition-colors'>
+                        <div onClick={() => handleApproveClick(index)} className='flex items-center mt-3 gap-x-3 bg-emerald-600 h-10 px-3 text-white rounded-lg hover:bg-emerald-700 transition-colors cursor-pointer active:opacity-70'>
                           <svg className='w-5 h-5' viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M21 10.0857V11.0057C20.9988 13.1621 20.3005 15.2604 19.0093 16.9875C17.7182 18.7147 15.9033 19.9782 13.8354 20.5896C11.7674 21.201 9.55726 21.1276 7.53447 20.3803C5.51168 19.633 3.78465 18.2518 2.61096 16.4428C1.43727 14.6338 0.879791 12.4938 1.02168 10.342C1.16356 8.19029 1.99721 6.14205 3.39828 4.5028C4.79935 2.86354 6.69279 1.72111 8.79619 1.24587C10.8996 0.770634 13.1003 0.988061 15.07 1.86572M21 3L11 13.01L8 10.01" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M21 10.0857V11.0057C20.9988 13.1621 20.3005 15.2604 19.0093 16.9875C17.7182 18.7147 15.9033 19.9782 13.8354 20.5896C11.7674 21.201 9.55726 21.1276 7.53447 20.3803C5.51168 19.633 3.78465 18.2518 2.61096 16.4428C1.43727 14.6338 0.879791 12.4938 1.02168 10.342C1.16356 8.19029 1.99721 6.14205 3.39828 4.5028C4.79935 2.86354 6.69279 1.72111 8.79619 1.24587C10.8996 0.770634 13.1003 0.988061 15.07 1.86572M21 3L11 13.01L8 10.01" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
-                          <p
-                            onClick={() => { setSelectedDeliveryIndex(index); setIsModalOpen(true)}} 
-                            className='pt-3 active:opacity-30 cursor-pointer'                     
-                          >
-                            Approve
-                          </p>
+                          <p className='pt-3'>Approve</p>
                         </div>
                       )}
                     </div>
 
                     {/* Modal for Approval */}
                     {isModalOpen && (
-                      <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex justify-center items-center z-50">
-                        <div className="bg-white p-6 rounded-lg w-1/3">
-                          <h2 className="text-xl mb-4">Accept delivery?</h2>
-                          <p className="mb-4">Once you accept this delivery, the work will be marked as approved. You can still release payment later.</p>
-                          <div className="flex text-center justify-between gap-4 hover:cursor-pointer">
-                            <p
-                              onClick={cancelApproval}
-                              className="w-full py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 active:opacity-30"
-                            >
-                              Cancel
-                            </p>
-                            <p
-                              onClick={() => alert('Delivery accepted!')}
-                              className="w-full py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 active:opacity-30"
-                            >
-                              Accept delivery
-                            </p>
-                          </div>
+                      <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 w-full h-full overflow-y-auto">
+                        <div className="bg-white p-4 sm:p-6 rounded-2xl w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-4">
+                          {formStep === 'confirm' && (
+                            <div className="p-6">
+                              <div className="text-xl mb-4">Accept delivery?</div>
+                              <div className="mb-6 text-gray-600">Once you accept this delivery, the work will be marked as approved. You can still release payment later.</div>
+                              <div className="flex text-center cursor-pointer gap-4 mt-16">
+                                <p
+                                  onClick={handleCancel}
+                                  className="flex-1 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 active:opacity-70 transition-all"
+                                >
+                                  Cancel
+                                </p>
+                                <p
+                                  onClick={handleAcceptConfirm}
+                                  className="flex-1 py-3 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 active:opacity-70 transition-all"
+                                >
+                                  Accept delivery
+                                </p>
+                              </div>
+                            </div>
+                          )}
+
+                          {formStep === 'form' && (
+                            <div className="p-6 max-h-[90vh] overflow-y-auto">
+                              <div className="flex items-center justify-center mb-4">
+                                <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
+                                  <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </div>
+                              </div>
+                              
+                              <div className="text-center mb-2">
+                                <h2 className="text-xl font-semibold">Payment Successful!</h2>
+                              </div>
+                              <div className="text-center text-gray-600 mb-6">
+                                Help Alex Rivera get started on your project
+                              </div>
+
+                              <div className="border-t pt-6">
+                                <div className="mb-4">
+                                  <div className="text-sm text-gray-600 mb-1">Service</div>
+                                  <div className="font-medium">Complete Brand Identity Design</div>
+                                </div>
+
+                                <div className="mb-6">
+                                  <div className="flex justify-between items-center mb-4">
+                                    <div className="text-sm font-medium">Setup Progress</div>
+                                    <div className="text-sm text-gray-600">{answeredCount} of 3 answered</div>
+                                  </div>
+
+                                  <div className="space-y-4">
+                                    {/* Question 1 */}
+                                    <div>
+                                      <div className="flex items-start gap-2 mb-2">
+                                        <span className="text-gray-600 mt-1">1</span>
+                                        <div className="flex-1">
+                                          <label className="block text-gray-900 mb-2">
+                                            What is your brand name and what does your company do?
+                                            <span className="ml-2 text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded">Required</span>
+                                          </label>
+                                          <textarea
+                                            name="brandName"
+                                            value={formData.brandName}
+                                            onChange={handleFormChange}
+                                            placeholder="Type your answer here..."
+                                            className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50"
+                                            rows={3}
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Question 2 */}
+                                    <div>
+                                      <div className="flex items-start gap-2 mb-2">
+                                        <span className="text-gray-600 mt-1">2</span>
+                                        <div className="flex-1">
+                                          <label className="block text-gray-900 mb-2">
+                                            Who is your target audience?
+                                            <span className="ml-2 text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded">Required</span>
+                                          </label>
+                                          <textarea
+                                            name="targetAudience"
+                                            value={formData.targetAudience}
+                                            onChange={handleFormChange}
+                                            placeholder="Type your answer here..."
+                                            className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50"
+                                            rows={3}
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Question 3 */}
+                                    <div>
+                                      <div className="flex items-start gap-2 mb-2">
+                                        <span className="text-gray-600 mt-1">3</span>
+                                        <div className="flex-1">
+                                          <label className="block text-gray-900 mb-2">
+                                            Do you have any color preferences or brand guidelines?
+                                          </label>
+                                          <textarea
+                                            name="colorPreferences"
+                                            value={formData.colorPreferences}
+                                            onChange={handleFormChange}
+                                            placeholder="Type your answer here..."
+                                            className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50"
+                                            rows={3}
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Attachments */}
+                                <div className="mb-6">
+                                  <div className="text-sm text-gray-600 mb-2">
+                                    Attachments (Optional) <span className="text-gray-400">Brand assets, references, etc.</span>
+                                  </div>
+                                  
+                                  <div
+                                    onDragEnter={handleDrag}
+                                    onDragLeave={handleDrag}
+                                    onDragOver={handleDrag}
+                                    onDrop={handleDrop}
+                                    className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                                      dragActive ? 'border-emerald-500 bg-emerald-50' : 'border-gray-300 bg-gray-50'
+                                    }`}
+                                  >
+                                    <input
+                                      type="file"
+                                      multiple
+                                      onChange={handleFileSelect}
+                                      className="hidden"
+                                      id="file-upload"
+                                    />
+                                    <label htmlFor="file-upload" className="cursor-pointer">
+                                      <svg className="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                      </svg>
+                                      <div className="text-emerald-600 font-medium mb-1">Click to upload</div>
+                                      <div className="text-sm text-gray-500">or drag and drop</div>
+                                      <div className="text-xs text-gray-400 mt-1">PNG, JPG, PDF up to 10MB - Max 5 files</div>
+                                    </label>
+                                    {formData.attachments && (
+                                      <div className="mt-4 text-sm text-gray-600">
+                                        {formData.attachments.length} file(s) selected
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Submit Button */}
+                                <button
+                                  onClick={handleSubmitRequirements}
+                                  className="w-full py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 active:opacity-70 transition-all font-medium"
+                                >
+                                  Submit Requirements
+                                </button>
+
+                                <div className="text-center text-xs text-gray-500 mt-4">
+                                  Your order countdown begins after submission. You can always add more details in the Order Room.
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {formStep === 'success' && (
+                            <div className="p-6 text-center">
+                              <div className="flex items-center justify-center mb-4">
+                                <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
+                                  <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </div>
+                              </div>
+                              <h2 className="text-xl font-semibold mb-2">Requirements Submitted!</h2>
+                              <p className="text-gray-600 mb-6">Your delivery has been approved and requirements have been sent to the team member.</p>
+                              <button
+                                onClick={handleSuccessClose}
+                                className="w-full py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 active:opacity-70 transition-all"
+                              >
+                                Done
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    )}
-
+                    )}   
                   </div>
                 ))}
               </div>
