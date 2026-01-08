@@ -323,7 +323,7 @@ export default function LeftOrderId({ selectedMemberId = 'user_002' }: LeftOrder
     setVisibleActivities((prev) => prev + 5);
   };
 
-  const answeredCount = [formData.brandName, formData.targetAudience].filter(Boolean).length;
+  const answeredCount = [formData.brandName, formData.targetAudience, formData.colorPreferences].filter(Boolean).length;
 
   return (
     <div className="w-full h-screen">
@@ -587,12 +587,14 @@ export default function LeftOrderId({ selectedMemberId = 'user_002' }: LeftOrder
                                 </div>
 
                                 {/* Submit Button */}
-                                <button
-                                  onClick={handleSubmitRequirements}
-                                  className="w-full py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 active:opacity-70 transition-all font-medium"
-                                >
-                                  Submit Requirements
-                                </button>
+                                <div className='flex w-full bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 active:opacity-70 transition-all cursor-pointer'>
+                                  <p
+                                    onClick={handleSubmitRequirements}
+                                    className="text-center w-full pt-3"
+                                  >
+                                    Submit Requirements
+                                  </p>
+                                </div>
 
                                 <div className="text-center text-xs text-gray-500 mt-4">
                                   Your order countdown begins after submission. You can always add more details in the Order Room.
@@ -612,12 +614,12 @@ export default function LeftOrderId({ selectedMemberId = 'user_002' }: LeftOrder
                               </div>
                               <h2 className="text-xl font-semibold mb-2">Requirements Submitted!</h2>
                               <p className="text-gray-600 mb-6">Your delivery has been approved and requirements have been sent to the team member.</p>
-                              <button
+                              <p
                                 onClick={handleSuccessClose}
                                 className="w-full py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 active:opacity-70 transition-all"
                               >
                                 Done
-                              </button>
+                              </p>
                             </div>
                           )}
                         </div>
