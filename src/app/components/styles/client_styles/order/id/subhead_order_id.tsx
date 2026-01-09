@@ -165,7 +165,7 @@ export default function SubHeaderOrderId({
         <div className="fixed inset-0 bg-black/80 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-2xl w-1/3">
             <p className="text-2xl font-bold mb-4">Report an Issue</p>
-            <p className="text-lg text-gray-500 mb-4">Describe the issue you're experiencing with this order. Our support team will review your report and get back to you.</p>
+            <p className="text-lg text-gray-500 mb-4">Describe the issue you are experiencing with this order. Our support team will review your report and get back to you.</p>
             
             {/* Issue Category */}
             <div className="mb-4">
@@ -203,7 +203,7 @@ export default function SubHeaderOrderId({
                 <p>What happens next:</p>
                 <ul className="list-disc pl-4">
                   <li>Our support team will review your report within 24 hours</li>
-                  <li>You'll receive updates via email and notifications</li>
+                  <li>You will receive updates via email and notifications</li>
                   <li>We may contact you for additional information</li>
                 </ul>
               </p>
