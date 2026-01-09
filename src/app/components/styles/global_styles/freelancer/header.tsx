@@ -114,7 +114,7 @@ function RoleSwitchModal({ isOpen, onClose, currentRole, targetRole, onConfirm, 
 export default function ClientNavHeader() {
     const [isJobsDropdownOpen, setIsJobsDropdownOpen] = useState(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-    const [currentRole, setCurrentRole] = useState('client');
+    const [currentRole, setCurrentRole] = useState('freelancer');
     const [showRoleModal, setShowRoleModal] = useState(false);
     const [targetRole, setTargetRole] = useState('');
     const [isRoleSwitching, setIsRoleSwitching] = useState(false);
