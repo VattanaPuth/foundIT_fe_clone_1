@@ -98,6 +98,13 @@ export default function TypeRole() {
     setError("");
 
     try {
+      // Check authentication
+      if (!authService.isAuthenticated()) {
+        throw new Error(
+          "You must be logged in to continue. Please sign in again."
+        );
+      }
+
       // Map role IDs to backend role names
       const roleMapping: Record<string, string> = {
         find_job: "FREELANCER",
@@ -108,7 +115,15 @@ export default function TypeRole() {
       const mappedRole = roleMapping[selectedRole];
 
       // Save role to database FIRST
+      const authHeader = authService.getAuthHeader();
       const token = authService.getToken();
+      const basicAuth = authService.getBasicAuth();
+
+      console.log("Token in localStorage:", token); // Debug log
+      console.log("BasicAuth in localStorage:", basicAuth); // Debug log
+      console.log("Auth header:", authHeader); // Debug log
+      console.log("Mapped role:", mappedRole); // Debug log
+
       const response = await fetch(
         `${
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:8085"
@@ -117,14 +132,17 @@ export default function TypeRole() {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: token } : {}),
+            ...authHeader,
           },
           body: JSON.stringify({ role: mappedRole }),
         }
       );
 
+      console.log("Response status:", response.status); // Debug log
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error("Error response:", errorData); // Debug log
         throw new Error(
           errorData.error || errorData.message || "Failed to update role"
         );

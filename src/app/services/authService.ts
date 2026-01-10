@@ -249,7 +249,8 @@ class AuthService {
     const basicAuth = this.getBasicAuth();
 
     if (token) {
-      return { Authorization: token };
+      // Add "Bearer " prefix for JWT tokens
+      return { Authorization: `Bearer ${token}` };
     } else if (basicAuth) {
       return { Authorization: `Basic ${basicAuth}` };
     }

@@ -1,23 +1,30 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface FormData {
   email: string;
+  otp: string;
   password: string;
   confirmPassword: string;
 }
 
 interface FormErrors {
   email?: string;
+  otp?: string;
   password?: string;
   confirmPassword?: string;
 }
 
-type Step = 'email' | 'reset';
+type Step = 'email' | 'otp' | 'reset';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8085";
 
 export default function ForgotPassword() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState<Step>('email');
   const [formData, setFormData] = useState<FormData>({ 
     email: '', 
+    otp: '',
     password: '', 
     confirmPassword: '' 
   });
@@ -26,6 +33,18 @@ export default function ForgotPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [canResendOtp, setCanResendOtp] = useState(false);
+  const [resendTimer, setResendTimer] = useState(60);
+
+  // Timer effect for OTP resend
+  React.useEffect(() => {
+    if (currentStep === 'otp' && resendTimer > 0) {
+      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (resendTimer === 0) {
+      setCanResendOtp(true);
+    }
+  }, [currentStep, resendTimer]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -61,8 +80,7 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with your actual API endpoint
-      const response = await fetch('http://localhost:8086/register/forgot-password', {
+      const response = await fetch(`${API_BASE_URL}/register/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,14 +89,60 @@ export default function ForgotPassword() {
       });
 
       if (response.ok) {
-        // Move to password reset step
-        setCurrentStep('reset');
+        // Move to OTP verification step
+        setCurrentStep('otp');
+        setResendTimer(60);
+        setCanResendOtp(false);
       } else {
-        const data = await response.json();
-        setErrors({ email: data.message || 'Something went wrong' });
+        const data = await response.json().catch(() => ({ message: 'Something went wrong' }));
+        setErrors({ email: data.message || 'Email not found' });
       }
     } catch (error) {
       setErrors({ email: 'Network error. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOtpVerify = () => {
+    const newErrors: FormErrors = {};
+    
+    if (!formData.otp) {
+      newErrors.otp = 'OTP is required';
+    } else if (formData.otp.length !== 6) {
+      newErrors.otp = 'OTP must be 6 digits';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    // Move to password reset step
+    setCurrentStep('reset');
+  };
+
+  const handleResendOtp = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/register/resend-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: formData.email }),
+      });
+
+      if (response.ok) {
+        setResendTimer(60);
+        setCanResendOtp(false);
+        setErrors({});
+      } else {
+        const data = await response.json().catch(() => ({ message: 'Failed to resend OTP' }));
+        setErrors({ otp: data.message || 'Failed to resend OTP' });
+      }
+    } catch (error) {
+      setErrors({ otp: 'Network error. Please try again.' });
     } finally {
       setIsLoading(false);
     }
@@ -107,23 +171,23 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with your actual API endpoint
-      const response = await fetch('http://localhost:8086/register/reset-password', {
+      const response = await fetch(`${API_BASE_URL}/register/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
           email: formData.email,
-          password: formData.password 
+          otp: formData.otp,
+          newPassword: formData.password 
         }),
       });
 
       if (response.ok) {
         setIsSuccess(true);
       } else {
-        const data = await response.json();
-        setErrors({ password: data.message || 'Something went wrong' });
+        const data = await response.json().catch(() => ({ message: 'Something went wrong' }));
+        setErrors({ password: data.message || 'Invalid OTP or password' });
       }
     } catch (error) {
       setErrors({ password: 'Network error. Please try again.' });
@@ -136,6 +200,8 @@ export default function ForgotPassword() {
     if (e.key === 'Enter' && !isLoading) {
       if (currentStep === 'email') {
         handleEmailSubmit();
+      } else if (currentStep === 'otp') {
+        handleOtpVerify();
       } else {
         handlePasswordReset();
       }
@@ -143,8 +209,7 @@ export default function ForgotPassword() {
   };
 
   const handleBackToSignIn = () => {
-    // TODO: Replace with your actual navigation logic
-    console.log('Navigate to sign in page');
+    router.push('/page/(welcome)/sign_in');
   };
 
   return (
@@ -168,7 +233,9 @@ export default function ForgotPassword() {
               {/* Description */}
               <div className="mb-6 text-sm text-gray-600">
                 {currentStep === 'email' 
-                  ? "Enter your email and we'll send you a link to reset your password."
+                  ? "Enter your email and we'll send you an OTP to reset your password."
+                  : currentStep === 'otp'
+                  ? `Enter the 6-digit OTP sent to ${formData.email}`
                   : "Enter your new password below."}
               </div>
 
@@ -204,11 +271,11 @@ export default function ForgotPassword() {
                         onChange={handleInputChange}
                         onKeyPress={handleKeyPress}
                         placeholder="your@example.com"
-                        disabled={currentStep === 'reset'}
+                        disabled={currentStep !== 'email'}
                         className={`w-full pl-10 pr-4 py-3 border ${
                           errors.email ? 'border-red-300' : 'border-gray-300'
                         } rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all ${
-                          currentStep === 'reset' ? 'bg-gray-100 cursor-not-allowed' : ''
+                          currentStep !== 'email' ? 'bg-gray-100 cursor-not-allowed' : ''
                         }`}
                       />
                     </div>
@@ -219,7 +286,53 @@ export default function ForgotPassword() {
                     )}
                   </div>
 
-                  {/* Password Fields - Show after email verification */}
+                  {/* OTP Input - Show after email submission */}
+                  {currentStep === 'otp' && (
+                    <div>
+                      <div className="text-lg text-gray-500 font-medium mb-2">
+                        OTP Code
+                      </div>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                          </svg>
+                        </div>
+                        <input
+                          type="text"
+                          name="otp"
+                          value={formData.otp}
+                          onChange={handleInputChange}
+                          onKeyPress={handleKeyPress}
+                          placeholder="Enter 6-digit OTP"
+                          maxLength={6}
+                          className={`w-full pl-10 pr-4 py-3 border ${
+                            errors.otp ? 'border-red-300' : 'border-gray-300'
+                          } rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all`}
+                        />
+                      </div>
+                      {errors.otp && (
+                        <div className="mt-1 text-sm text-red-600">
+                          {errors.otp}
+                        </div>
+                      )}
+                      <div className="mt-2 flex items-center justify-between text-sm">
+                        <span className="text-gray-600">
+                          {canResendOtp ? 'Didn\'t receive OTP?' : `Resend in ${resendTimer}s`}
+                        </span>
+                        {canResendOtp && (
+                          <span
+                            onClick={handleResendOtp}
+                            className="text-[#D92AD0] hover:text-pink-600 cursor-pointer font-medium"
+                          >
+                            Resend OTP
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Password Fields - Show after OTP verification */}
                   {currentStep === 'reset' && (
                     <>
                       {/* Password Input */}
@@ -310,12 +423,12 @@ export default function ForgotPassword() {
 
                   {/* Submit Button */}
                   <div
-                    onClick={!isLoading ? (currentStep === 'email' ? handleEmailSubmit : handlePasswordReset) : undefined}
+                    onClick={!isLoading ? (currentStep === 'email' ? handleEmailSubmit : currentStep === 'otp' ? handleOtpVerify : handlePasswordReset) : undefined}
                     className={`w-full bg-[#D92AD0] text-white py-3 px-4 rounded-2xl font-medium text-center cursor-pointer transition-all ${
                       isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-pink-300'
                     }`}
                   >
-                    {isLoading ? 'Processing...' : currentStep === 'email' ? 'Send reset link' : 'Reset password'}
+                    {isLoading ? 'Processing...' : currentStep === 'email' ? 'Send OTP' : currentStep === 'otp' ? 'Verify OTP' : 'Reset password'}
                   </div>
                 </div>
               )}

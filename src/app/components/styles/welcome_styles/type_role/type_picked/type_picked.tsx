@@ -1,29 +1,112 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function TypePicked() {
-  // List of categories
-  const Career = [
-    "Designer",
-    "Web Developer",
-    "Mobile Developer",
-    "Writer/Copy",
-    "Marketer/SEO",
-    "Video/Motion",
-    "3D",
-  ];
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const role = searchParams.get("role"); // Get role from URL query
 
-  const tools = [
-    "Figma",
-    "Photoshop",
-    "Illustrator",
-    "React",
-    "Next.js",
-    "Vue",
-  ];
+  // List of categories based on role
+  const getCategoriesByRole = () => {
+    switch (role) {
+      case "find_job": // FREELANCER
+        return {
+          categoryTitle: "What skills do you offer?",
+          categories: [
+            "Designer",
+            "Web Developer",
+            "Mobile Developer",
+            "Writer/Copy",
+            "Marketer/SEO",
+            "Video/Motion",
+            "3D Artist",
+          ],
+          toolsTitle: "Which tools do you use?",
+          tools: [
+            "Figma",
+            "Photoshop",
+            "Illustrator",
+            "React",
+            "Next.js",
+            "Vue",
+          ],
+          dashboardRoute: "/page/freelancer/projects",
+        };
+      case "hire_talent": // CLIENT
+        return {
+          categoryTitle: "What roles do you need?",
+          categories: [
+            "Designer",
+            "Web Developer",
+            "Mobile Developer",
+            "Writer/Copy",
+            "Marketer/SEO",
+            "Video/Motion",
+            "3D Artist",
+          ],
+          toolsTitle: "Any tools to prefer?",
+          tools: [
+            "Figma",
+            "Photoshop",
+            "Illustrator",
+            "React",
+            "Next.js",
+            "Vue",
+          ],
+          dashboardRoute: "/page/client/home",
+        };
+      case "sell_products": // SELLER
+        return {
+          categoryTitle: "What products do you sell?",
+          categories: [
+            "UI/UX Design",
+            "Web Templates",
+            "Mobile Templates",
+            "Courses",
+            "E-books",
+            "Graphics",
+            "Plugins",
+          ],
+          toolsTitle: "Which platforms do you use?",
+          tools: [
+            "Figma",
+            "Photoshop",
+            "Illustrator",
+            "Sketch",
+            "Adobe XD",
+            "Canva",
+          ],
+          dashboardRoute: "/page/seller/home",
+        };
+      default:
+        return {
+          categoryTitle: "What are you interested in?",
+          categories: [
+            "Designer",
+            "Developer",
+            "Writer",
+            "Marketer",
+            "Video",
+            "3D",
+          ],
+          toolsTitle: "Any tools to prefer?",
+          tools: ["Figma", "Photoshop", "React", "Next.js", "Vue"],
+          dashboardRoute: "/page/client/home",
+        };
+    }
+  };
 
+  const config = getCategoriesByRole();
   const [selected, setSelected] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Redirect if no role is provided
+    if (!role) {
+      router.push("/page/type_role");
+    }
+  }, [role, router]);
 
   // Toggle button on/off
   const toggleSelect = (item: string) => {
@@ -41,7 +124,7 @@ export default function TypePicked() {
 
   return (
     <div className="w-full ">
-      <div className='flex justify-center w-full h-9 mt-12 mb-8'>
+      <div className="flex justify-center w-full h-9 mt-12 mb-8">
         <img src="/favicon.ico" alt="logo" />
       </div>
 
@@ -52,23 +135,39 @@ export default function TypePicked() {
             onClick={() => window.history.back()}
             className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer transition-colors"
           >
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-5 h-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </div>
 
           {/* Header */}
           <div className="mb-6">
-            <div className="text-3xl sm:text-3xl font-bold text-gray-900 mb-4">Tell us what you're into</div>
+            <div className="text-3xl sm:text-3xl font-bold text-gray-900 mb-4">
+              Tell us what you're into
+            </div>
             <div className="text-sm sm:text-base text-gray-500 mb-4">
-              We'll personalize your feed and shortcuts. You can change this anytime.
+              We'll personalize your feed and shortcuts. You can change this
+              anytime.
             </div>
           </div>
 
           {/* Selected Tags Display */}
           <div className="flex flex-wrap gap-3 mb-6">
             {selected.map((item) => (
-              <div key={item} className="flex items-center justify-between bg-white border border-[#D92AD0] text-[#D92AD0] px-4 py-2 rounded-full">
+              <div
+                key={item}
+                className="flex items-center justify-between bg-white border border-[#D92AD0] text-[#D92AD0] px-4 py-2 rounded-full"
+              >
                 {item}
                 <div
                   onClick={() => removeSelected(item)}
@@ -82,14 +181,20 @@ export default function TypePicked() {
 
           {/* First Category */}
           <div className="mb-6">
-            <div className="text-sm sm:text-base font-semibold text-gray-900 mb-4">What roles do you need first?</div>
+            <div className="text-sm sm:text-base font-semibold text-gray-900 mb-4">
+              {config.categoryTitle}
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {Career.map((item) => (
-                <div        
+              {config.categories.map((item) => (
+                <div
                   key={item}
                   onClick={() => toggleSelect(item)}
                   className={`text-center py-2 px-4 rounded-full cursor-pointer transition-all 
-                    ${selected.includes(item) ? 'bg-[#D92AD0] text-white' : 'bg-[#EEF2F7] text-[#364153]'}
+                    ${
+                      selected.includes(item)
+                        ? "bg-[#D92AD0] text-white"
+                        : "bg-[#EEF2F7] text-[#364153]"
+                    }
                     hover:opacity-70`}
                 >
                   {item}
@@ -100,14 +205,20 @@ export default function TypePicked() {
 
           {/* Second Category */}
           <div className="mb-6">
-            <div className="text-sm sm:text-base font-semibold text-gray-900 mb-4">Any tools to prefer?</div>
+            <div className="text-sm sm:text-base font-semibold text-gray-900 mb-4">
+              {config.toolsTitle}
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {tools.map((item) => (
+              {config.tools.map((item) => (
                 <div
                   key={item}
                   onClick={() => toggleSelect(item)}
                   className={`text-center py-2 px-4 rounded-full cursor-pointer transition-all 
-                    ${selected.includes(item) ? 'bg-[#D92AD0] text-white' : 'bg-[#EEF2F7] text-[#364153]'}
+                    ${
+                      selected.includes(item)
+                        ? "bg-[#D92AD0] text-white"
+                        : "bg-[#EEF2F7] text-[#364153]"
+                    }
                     hover:opacity-70`}
                 >
                   {item}
@@ -125,7 +236,8 @@ export default function TypePicked() {
                   return;
                 }
                 console.log("Selected items:", selected);
-                // Add logic to continue or submit the form
+                // Navigate to appropriate dashboard based on role
+                router.push(config.dashboardRoute);
               }}
               className="w-full py-3.5 rounded-xl text-white text-center font-medium text-base bg-[#D92AD0] hover:bg-[#C01FB8] cursor-pointer transition-all"
             >
@@ -135,7 +247,14 @@ export default function TypePicked() {
 
           {/* Skip Button */}
           <div className="flex justify-center text-sm text-gray-500 hover:text-gray-700 cursor-pointer">
-            <div onClick={() => console.log("Skipped role selection")} className="hover:underline">
+            <div
+              onClick={() => {
+                console.log("Skipped preference selection");
+                // Navigate to appropriate dashboard even when skipped
+                router.push(config.dashboardRoute);
+              }}
+              className="hover:underline"
+            >
               Skip for now
             </div>
           </div>
