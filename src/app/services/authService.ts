@@ -25,7 +25,7 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
   token?: string;
-  user?: any;
+  user?: Record<string, unknown>;
   message?: string;
 }
 
@@ -67,7 +67,7 @@ class AuthService {
       }
 
       return { message: "Login successful but no token received" };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("JWT Login error:", error);
       throw error;
     }

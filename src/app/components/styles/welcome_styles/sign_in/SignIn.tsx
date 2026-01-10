@@ -56,27 +56,30 @@ export default function SignIn() {
       setTimeout(() => {
         router.push("/page/type_role");
       }, 500);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login error:", err);
 
       // More specific error messages
-      if (err.message?.includes("User not found")) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      if (errorMessage.includes("User not found")) {
         setError(
           "No account found with this email. Please check your email or sign up."
         );
-      } else if (err.message?.includes("password")) {
+      } else if (errorMessage.includes("password")) {
         setError("Incorrect password. Please try again.");
-      } else if (err.message?.includes("credentials")) {
+      } else if (errorMessage.includes("credentials")) {
         setError("Invalid email or password. Please try again.");
       } else if (
-        err.message?.includes("Network") ||
-        err.message?.includes("Failed to fetch")
+        errorMessage.includes("Network") ||
+        errorMessage.includes("Failed to fetch")
       ) {
         setError(
           "Cannot connect to server. Please check if the backend is running."
         );
       } else {
-        setError(err.message || "Login failed. Please check your credentials.");
+        setError(
+          errorMessage || "Login failed. Please check your credentials."
+        );
       }
     } finally {
       setIsLoading(false);
@@ -278,7 +281,7 @@ export default function SignIn() {
 
               {/* Sign In Button */}
               <div
-                onClick={!isLoading ? (handleEmailSignIn as any) : undefined}
+                onClick={!isLoading ? handleEmailSignIn : undefined}
                 className="w-full bg-[#D92AD0] text-white py-3 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all cursor-pointer text-center font-medium text-sm sm:text-base"
               >
                 {isLoading ? "Signing in..." : "Sign in"}

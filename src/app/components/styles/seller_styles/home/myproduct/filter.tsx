@@ -13,7 +13,12 @@ function handleKeyboardActivate(
 }
 
 const STATUS = ["All Status", "Active", "Paused", "Draft"] as const;
-const SORT = ["Most Recent", "Highest Revenue", "Most Sale", "Most View"] as const;
+const SORT = [
+  "Most Recent",
+  "Highest Revenue",
+  "Most Sale",
+  "Most View",
+] as const;
 
 export default function Filter() {
   const [q, setQ] = useState("");
@@ -69,7 +74,7 @@ export default function Filter() {
             onToggle={() => setOpenKey(openKey === "status" ? null : "status")}
             items={STATUS as unknown as string[]}
             onPick={(v) => {
-              setStatus(v as any);
+              setStatus(v as typeof status);
               setOpenKey(null);
             }}
           />
@@ -80,7 +85,7 @@ export default function Filter() {
             onToggle={() => setOpenKey(openKey === "sort" ? null : "sort")}
             items={SORT as unknown as string[]}
             onPick={(v) => {
-              setSort(v as any);
+              setSort(v as typeof sort);
               setOpenKey(null);
             }}
           />

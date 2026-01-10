@@ -153,9 +153,10 @@ export default function TypeRole() {
 
       // Only navigate to type_picked AFTER successful database save
       router.push(`/page/type_role/type_picked?role=${selectedRole}`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error updating role:", err);
-      setError(err.message || "Failed to save role. Please try again.");
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage || "Failed to save role. Please try again.");
       setIsLoading(false);
     }
   };

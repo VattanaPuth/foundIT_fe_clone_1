@@ -72,9 +72,10 @@ export default function SignUp() {
       setTimeout(() => {
         router.push("/page/sign_in");
       }, 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Registration error:", err);
-      setError(err.message || "Registration failed. Please try again.");
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -353,7 +354,7 @@ export default function SignUp() {
 
               {/* Sign Up Button */}
               <div
-                onClick={!isLoading ? (handleEmailSignUp as any) : undefined}
+                onClick={!isLoading ? handleEmailSignUp : undefined}
                 className={`w-full bg-[#D92AD0] text-white py-3 rounded-lg transition-all text-center font-medium text-sm sm:text-base ${
                   isLoading
                     ? "opacity-70 cursor-not-allowed"

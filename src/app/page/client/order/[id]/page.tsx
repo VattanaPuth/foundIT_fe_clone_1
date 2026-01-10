@@ -9,7 +9,9 @@ import { Loading } from "@/app/components/styles/global_styles/loading/loading";
 import ClientFooter from "@/app/components/styles/global_styles/client/footer";
 
 const OrdersIdPage: React.FC = () => {
-  const [orderData, setOrderData] = useState<any>(null);
+  const [orderData, setOrderData] = useState<Record<string, unknown> | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
@@ -18,15 +20,50 @@ const OrdersIdPage: React.FC = () => {
       orderId: "2.5",
       projectTitle: "Full-Stack Web Application - E-Learning Platform",
       teamMembers: [
-        { id: "user_002", name: "James Foster", rating: 4.9, reviewCount: 89, budget: 8500, progress: 70, isVerified: true },
-        { id: "user_003", name: "Rachel Kim", rating: 4.8, reviewCount: 56, budget: 5000, progress: 65, isVerified: false },
-        { id: "user_004", name: "David Chen", rating: 5.0, reviewCount: 43, budget: 5500, progress: 80, isVerified: true },
+        {
+          id: "user_002",
+          name: "James Foster",
+          rating: 4.9,
+          reviewCount: 89,
+          budget: 8500,
+          progress: 70,
+          isVerified: true,
+        },
+        {
+          id: "user_003",
+          name: "Rachel Kim",
+          rating: 4.8,
+          reviewCount: 56,
+          budget: 5000,
+          progress: 65,
+          isVerified: false,
+        },
+        {
+          id: "user_004",
+          name: "David Chen",
+          rating: 5.0,
+          reviewCount: 43,
+          budget: 5500,
+          progress: 80,
+          isVerified: true,
+        },
       ],
       status: "Active" as const,
       deadline: "Dec 1, 2024",
       nda: true,
-      orderOverview: { type: "Fixed Price", startDate: "Oct 20, 2024", dueDate: "Dec 1, 2024", relatedJobTitle: "View job" },
-      paymentSummary: { inEscrow: 14000, paymentsReleased: 6000, platformFee: 1000, platformFeePercentage: 5, totalContract: 20000 },
+      orderOverview: {
+        type: "Fixed Price",
+        startDate: "Oct 20, 2024",
+        dueDate: "Dec 1, 2024",
+        relatedJobTitle: "View job",
+      },
+      paymentSummary: {
+        inEscrow: 14000,
+        paymentsReleased: 6000,
+        platformFee: 1000,
+        platformFeePercentage: 5,
+        totalContract: 20000,
+      },
       quickLinks: [
         { id: "1", label: "View original job", icon: "job" as const },
         { id: "2", label: "James Foster's profile", icon: "profile" as const },
@@ -40,14 +77,13 @@ const OrdersIdPage: React.FC = () => {
       await new Promise((r) => setTimeout(r, 500));
       const data = mockOrdersData[0];
       setOrderData(data);
-      setSelectedMemberId(data.teamMembers[0].id); 
+      setSelectedMemberId(data.teamMembers[0].id);
       setLoading(false);
     };
     fetchData();
   }, []);
 
-  if (loading) 
-    return <Loading/>;
+  if (loading) return <Loading />;
 
   if (!orderData || !selectedMemberId) return <div>Order not found</div>;
 
@@ -81,7 +117,7 @@ const OrdersIdPage: React.FC = () => {
           </div>
         </div>
       </div>
-      <ClientFooter/>
+      <ClientFooter />
     </div>
   );
 };
