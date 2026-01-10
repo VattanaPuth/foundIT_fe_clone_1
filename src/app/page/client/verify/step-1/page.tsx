@@ -203,11 +203,39 @@ export default function Step1Page() {
   const [sex, setSex] = useState("");
   const [phone, setPhone] = useState("");
 
+  // Load saved data on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("verifyStep1Data");
+    if (saved) {
+      const data = JSON.parse(saved);
+      setFullName(data.fullName || "");
+      setDob(data.dob || "");
+      setNationality(data.nationality || "United States");
+      setSex(data.sex || "");
+      setPhone(data.phone || "");
+    }
+  }, []);
+
   // Fix phone input: block letters by sanitizing
   function handlePhoneChange(next: string) {
     // Allow digits + common phone symbols only
     const cleaned = next.replace(/[^0-9+\-()\s]/g, "");
     setPhone(cleaned);
+  }
+
+  function handleContinue() {
+    // Validate required fields
+    if (!fullName || !dob || !nationality || !sex || !phone) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    // Save data to localStorage for use in step-2
+    const step1Data = { fullName, dob, nationality, sex, phone };
+    localStorage.setItem("verifyStep1Data", JSON.stringify(step1Data));
+
+    // Navigate to step-2
+    router.push("../verify/step-2");
   }
 
   return (
@@ -401,7 +429,7 @@ export default function Step1Page() {
             </p>
 
             <p
-              onClick={() => router.push("../verify/step-2")}
+              onClick={handleContinue}
               className="bg-green-500 hover:bg-green-600 text-white px-5 h-10 inline-flex items-center justify-center rounded-md text-sm cursor-pointer"
             >
               Continue
