@@ -371,8 +371,11 @@ function RecentActivityCard({ items }: { items: ActivityItem[] }) {
 
       <div className="mt-3 space-y-3">
         {items.map((a) => {
-          // Optional: use a.variant === "info" to show the 4th icon
-          const variant = (a as any).variant as string | undefined;
+          // Optional: use variant property if it exists on the item
+          const variant =
+            "variant" in a
+              ? (a as ActivityItem & { variant?: string }).variant
+              : undefined;
 
           return (
             <div key={a.id} className="flex items-start justify-between gap-3">
@@ -556,11 +559,15 @@ function RecentActivityCard({ items }: { items: ActivityItem[] }) {
                   <div className="text-sm font-medium text-gray-900 truncate">
                     {a.title}
                   </div>
-                  <div className="text-xs text-gray-500 truncate">{a.subtitle}</div>
+                  <div className="text-xs text-gray-500 truncate">
+                    {a.subtitle}
+                  </div>
                 </div>
               </div>
 
-              <div className="text-xs text-gray-500 whitespace-nowrap">{a.time}</div>
+              <div className="text-xs text-gray-500 whitespace-nowrap">
+                {a.time}
+              </div>
             </div>
           );
         })}
@@ -568,7 +575,6 @@ function RecentActivityCard({ items }: { items: ActivityItem[] }) {
     </div>
   );
 }
-
 
 export default function RightWidgets({
   candidates,
