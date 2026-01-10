@@ -372,9 +372,10 @@ function RecentActivityCard({ items }: { items: ActivityItem[] }) {
       <div className="mt-3 space-y-3">
         {items.map((a) => {
           // Optional: use variant property if it exists on the item
-          const variant =
-            "variant" in a
-              ? (a as ActivityItem & { variant?: string }).variant
+          const variant: string | undefined =
+            "variant" in a &&
+            typeof (a as Record<string, unknown>).variant === "string"
+              ? ((a as Record<string, unknown>).variant as string)
               : undefined;
 
           return (

@@ -2,9 +2,12 @@
 "use client";
 
 import React from "react";
-import type { Product } from "@/app/components/styles/admin/products/mockData";
+import type { Product } from "@/app/components/styles/admin_styles/products/mockData";
 
-function handleKeyboardActivate(e: React.KeyboardEvent, onActivate: () => void) {
+function handleKeyboardActivate(
+  e: React.KeyboardEvent,
+  onActivate: () => void
+) {
   if (e.key === "Enter" || e.key === " ") {
     e.preventDefault();
     onActivate();
@@ -49,12 +52,15 @@ export default function ProductModal({
           <div className="px-5 py-5">
             <div className="text-sm text-gray-700">
               <div className="font-medium text-gray-900">{product.name}</div>
-              <div className="mt-2 text-gray-600">Category: {product.category}</div>
+              <div className="mt-2 text-gray-600">
+                Category: {product.category}
+              </div>
               <div className="mt-1 text-gray-600">Seller: {product.seller}</div>
               <div className="mt-1 text-gray-600">Sales: {product.sales}</div>
 
               <div className="mt-4 text-gray-500">
-                (Blank modal for now — you’ll replace with your designed modal UI.)
+                (Blank modal for now — you’ll replace with your designed modal
+                UI.)
               </div>
             </div>
 
