@@ -124,7 +124,64 @@ export default function TypeRole() {
 
       console.log("Role updated successfully");
 
-      // Navigate to verify/step-1 AFTER successful update
+      // Check if user is already verified
+      const token = localStorage.getItem("token");
+      console.log("DEBUG - Access token:", token ? "exists" : "null");
+
+      if (!token) {
+        console.log("No access token found, skipping verification check");
+        router.push("/page/client/verify/step-1");
+        return;
+      }
+
+      console.log(
+        "DEBUG - Checking verification status at http://localhost:8085/ekyc/status"
+      );
+      const statusResponse = await fetch("http://localhost:8085/ekyc/status", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log(
+        "DEBUG - Status response:",
+        statusResponse.status,
+        statusResponse.ok
+      );
+
+      if (statusResponse.ok) {
+        const statusData = await statusResponse.json();
+        console.log("DEBUG - Status data:", statusData);
+        console.log(
+          "DEBUG - verified value:",
+          statusData.verified,
+          "type:",
+          typeof statusData.verified
+        );
+
+        if (statusData.verified) {
+          // User is already verified, redirect to their role-specific homepage
+          const homeRoutes: Record<Role, string> = {
+            [Role.CLIENT]: "/page/client/home",
+            [Role.FREELANCER]: "/page/freelancer/projects",
+            [Role.SELLER]: "/page/seller/home",
+          };
+
+          console.log(
+            "User already verified, redirecting to homepage:",
+            homeRoutes[mappedRole]
+          );
+          router.push(homeRoutes[mappedRole]);
+          return;
+        } else {
+          console.log("DEBUG - User NOT verified, going to step-1");
+        }
+      } else {
+        console.log("DEBUG - Status check failed, response not ok");
+      }
+
+      // Navigate to verify/step-1 if not verified
+      console.log("DEBUG - Navigating to verify/step-1");
       router.push("/page/client/verify/step-1");
     } catch (err: unknown) {
       console.error("Error updating role:", err);
