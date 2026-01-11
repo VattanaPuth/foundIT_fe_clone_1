@@ -46,13 +46,23 @@ export default function DeliveryAndDescriptionSection({
   setCustomDays,
   description,
   setDescription,
+  referenceFiles,
+  onReferenceFilesChange,
+  onRemoveReferenceFile,
+  maxReferenceFiles,
+  getFileIcon,
 }: {
   deliveryKey: string;
-  setDeliveryKey: (v: string) => void;
+  setDeliveryKey: (val: string) => void;
   customDays: string;
-  setCustomDays: (v: string) => void;
+  setCustomDays: (val: string) => void;
   description: string;
-  setDescription: (v: string) => void;
+  setDescription: (val: string) => void;
+  referenceFiles?: File[];
+  onReferenceFilesChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemoveReferenceFile?: (index: number) => void;
+  maxReferenceFiles?: number;
+  getFileIcon?: (fileType: string) => string;
 }) {
   const deliveryOptions = [
     { key: "24h", label: "24 hours" },
@@ -154,22 +164,88 @@ export default function DeliveryAndDescriptionSection({
         />
       </div>
 
-      {/* References upload (static) */}
+      {/* References upload (dynamic) */}
       <div className="mb-6">
         <div className="text-sm font-medium text-gray-900 mb-2">
           Add references{" "}
           <span className="text-gray-500 font-normal">
-            (PDF/Images/ZIP, up to 10)
+            (PDF/Images/ZIP, up to {maxReferenceFiles || 10})
           </span>
         </div>
 
-        <div className="rounded-lg border bg-white p-6 flex flex-col items-center justify-center text-center text-gray-500">
-          <div className="text-gray-400 mb-2">
-            <UploadIcon />
+        {referenceFiles &&
+          referenceFiles.length < (maxReferenceFiles || 10) && (
+            <label className="inline-block mb-3 px-4 py-2 bg-white border-2 border-dashed border-gray-300 rounded-lg hover:border-green-400 cursor-pointer transition-colors">
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.gif,.zip"
+                multiple
+                onChange={onReferenceFilesChange}
+                className="hidden"
+              />
+              <div className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                <span>
+                  Add Reference Files ({referenceFiles.length}/
+                  {maxReferenceFiles || 10})
+                </span>
+              </div>
+            </label>
+          )}
+
+        {referenceFiles && referenceFiles.length > 0 ? (
+          <div className="space-y-2">
+            {referenceFiles.map((file, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg"
+              >
+                <span className="text-2xl">
+                  {getFileIcon ? getFileIcon(file.type) : "📎"}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900 truncate">
+                    {file.name}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {(file.size / 1024).toFixed(1)} KB
+                  </div>
+                </div>
+                <button
+                  onClick={() =>
+                    onRemoveReferenceFile && onRemoveReferenceFile(index)
+                  }
+                  className="flex-shrink-0 w-7 h-7 bg-red-100 text-red-600 rounded-full flex items-center justify-center hover:bg-red-200 transition-colors"
+                  title="Remove file"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
           </div>
-          <div className="text-sm">Drop files here or click to upload</div>
-          <div className="text-xs text-gray-400 mt-1">0/10 files</div>
-        </div>
+        ) : (
+          <div className="rounded-lg border bg-white p-6 flex flex-col items-center justify-center text-center text-gray-500">
+            <div className="text-gray-400 mb-2">
+              <UploadIcon />
+            </div>
+            <div className="text-sm">Drop files here or click to upload</div>
+            <div className="text-xs text-gray-400 mt-1">
+              0/{maxReferenceFiles || 10} files
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
