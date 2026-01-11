@@ -7,7 +7,10 @@ import ClientFooter from "@/app/components/styles/global_styles/client/footer";
 
 type Option = { label: string; value: string };
 
-function handleKeyboardActivate(e: React.KeyboardEvent, onActivate: () => void) {
+function handleKeyboardActivate(
+  e: React.KeyboardEvent,
+  onActivate: () => void
+) {
   if (e.key === "Enter" || e.key === " ") {
     e.preventDefault();
     onActivate();
@@ -128,8 +131,7 @@ function SimpleDropdown({
   const boxRef = useRef<HTMLDivElement | null>(null);
   const listId = useId();
 
-  const selectedLabel =
-    options.find((o) => o.value === value)?.label || "";
+  const selectedLabel = options.find((o) => o.value === value)?.label || "";
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -256,279 +258,338 @@ export default function Step3Page() {
 
   return (
     <>
-    <ClientNavHeader/>
-    <main className="bg-gray-50 min-h-screen px-4 py-8">
-      <div className="mx-auto max-w-4xl">
-        {/* Title area */}
-        <div className="flex items-start justify-between gap-3 mb-6">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900">
-              Identity Verification
-            </h1>
-            <p className="text-sm text-gray-500">
-              Verify your identity to unlock all features
-            </p>
-          </div>
-
-          <div className="text-xs bg-gray-100 px-3 py-1 rounded-full text-gray-700">
-            🔒 Secure &amp; Encrypted
-          </div>
-        </div>
-
-        {/* Progress */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-gray-700">Step 3 of 4</span>
-            <span className="text-gray-500">80% Complete</span>
-          </div>
-          <div className="w-full h-2 bg-green-100 rounded-full">
-            <div className="h-2 bg-green-500 rounded-full w-4/5" />
-          </div>
-        </div>
-
-        {/* Step navigation (visual only) */}
-        <div className="flex items-center gap-4 text-sm mb-8">
-          {/* Step 1 - completed */}
-          <div className="flex items-center gap-2 text-green-600 font-medium">
-            <span className="inline-flex w-5 h-5 items-center justify-center rounded-full bg-green-600 text-white text-xs">
-              ✓
-            </span>
-            <span>Personal Info</span>
-          </div>
-
-          <span className="text-gray-300">›</span>
-
-          {/* Step 2 - completed */}
-          <div className="flex items-center gap-2 text-green-600 font-medium">
-            <span className="inline-flex w-5 h-5 items-center justify-center rounded-full bg-green-600 text-white text-xs">
-              ✓
-            </span>
-            <span>ID Verification</span>
-          </div>
-
-          <span className="text-gray-300">›</span>
-
-          {/* Step 3 - active */}
-          <div className="flex items-center gap-2 text-green-600 font-medium">
-            <span className="inline-flex w-5 h-5 items-center justify-center rounded-full border border-green-600 text-green-700 text-xs">
-              3
-            </span>
-            <span>Address Proof</span>
-          </div>
-
-          <span className="text-gray-300">›</span>
-          <span className="text-gray-400">Review</span>
-        </div>
-
-        {/* Main card */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="font-medium text-gray-900 mb-1">Address Verification</h2>
-          <p className="text-sm text-gray-500 mb-6">
-            Provide your address and upload proof of residence
-          </p>
-
-          {/* Address fields */}
-          <div className="space-y-4">
+      <ClientNavHeader />
+      <main className="bg-gray-50 min-h-screen px-4 py-8">
+        <div className="mx-auto max-w-4xl">
+          {/* Title area */}
+          <div className="flex items-start justify-between gap-3 mb-6">
             <div>
-              <div className="text-sm text-gray-800 mb-1">
-                Address Line 1 <span className="text-red-500">*</span>
-              </div>
-              <input
-                aria-label="Address Line 1"
-                value={address1}
-                onChange={(e) => setAddress1(e.target.value)}
-                placeholder="123 Main Street"
-                className={[
-                  "w-full h-10 rounded-md border bg-white px-3 py-2",
-                  "hover:border-gray-400",
-                  "focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-400",
-                ].join(" ")}
-              />
-            </div>
-
-            <div>
-              <div className="text-sm text-gray-800 mb-1">
-                Address Line 2 <span className="text-gray-400">(optional)</span>
-              </div>
-              <input
-                aria-label="Address Line 2"
-                value={address2}
-                onChange={(e) => setAddress2(e.target.value)}
-                placeholder="Apt 4B"
-                className={[
-                  "w-full h-10 rounded-md border bg-white px-3 py-2",
-                  "hover:border-gray-400",
-                  "focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-400",
-                ].join(" ")}
-              />
-            </div>
-
-            {/* City + State/Province */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="text-sm text-gray-800 mb-1">
-                  City <span className="text-red-500">*</span>
-                </div>
-                <input
-                  aria-label="City"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="New York"
-                  className={[
-                    "w-full h-10 rounded-md border bg-white px-3 py-2",
-                    "hover:border-gray-400",
-                    "focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-400",
-                  ].join(" ")}
-                />
-              </div>
-
-              <div>
-                <div className="text-sm text-gray-800 mb-1">
-                  State/Province <span className="text-red-500">*</span>
-                </div>
-                <input
-                  aria-label="State or Province"
-                  value={stateProvince}
-                  onChange={(e) => setStateProvince(e.target.value)}
-                  placeholder="NY"
-                  className={[
-                    "w-full h-10 rounded-md border bg-white px-3 py-2",
-                    "hover:border-gray-400",
-                    "focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-400",
-                  ].join(" ")}
-                />
-              </div>
-            </div>
-
-            {/* Postal + Country */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="text-sm text-gray-800 mb-1">
-                  Postal Code <span className="text-gray-400">(optional)</span>
-                </div>
-                <input
-                  aria-label="Postal Code"
-                  value={postalCode}
-                  onChange={(e) => setPostalCode(e.target.value)}
-                  placeholder="10001"
-                  className={[
-                    "w-full h-10 rounded-md border bg-white px-3 py-2",
-                    "hover:border-gray-400",
-                    "focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-400",
-                  ].join(" ")}
-                />
-              </div>
-
-              <div>
-                <div className="text-sm text-gray-800 mb-1">
-                  Country <span className="text-red-500">*</span>
-                </div>
-                <SimpleDropdown
-                  ariaLabel="Country"
-                  value={country}
-                  onChange={setCountry}
-                  placeholder="Select country"
-                  options={countryOptions}
-                />
-              </div>
-            </div>
-
-            {/* Upload proof */}
-            <div className="pt-2">
-              <div className="text-sm text-gray-800 mb-1">
-                Upload Proof of Address <span className="text-red-500">*</span>
-              </div>
-              <p className="text-xs text-gray-500 mb-2">
-                Utility bill, bank statement, or lease agreement (within last 3 months)
+              <h1 className="text-xl font-semibold text-gray-900">
+                Identity Verification
+              </h1>
+              <p className="text-sm text-gray-500">
+                Verify your identity to unlock all features
               </p>
+            </div>
 
-              <div className="rounded-md border bg-white p-8 flex flex-col items-center text-center">
-                <DocIcon />
+            <div className="text-xs bg-gray-100 px-3 py-1 rounded-full text-gray-700">
+              🔒 Secure &amp; Encrypted
+            </div>
+          </div>
 
-                <div className="mt-4">
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => console.log("Upload clicked (static)")}
-                    onKeyDown={(e) =>
-                      handleKeyboardActivate(e, () =>
-                        console.log("Upload clicked (static)")
-                      )
-                    }
+          {/* Progress */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between text-sm mb-2">
+              <span className="text-gray-700">Step 3 of 4</span>
+              <span className="text-gray-500">80% Complete</span>
+            </div>
+            <div className="w-full h-2 bg-green-100 rounded-full">
+              <div className="h-2 bg-green-500 rounded-full w-4/5" />
+            </div>
+          </div>
+
+          {/* Step navigation (visual only) */}
+          <div className="flex items-center gap-4 text-sm mb-8">
+            {/* Step 1 - completed */}
+            <div className="flex items-center gap-2 text-green-600 font-medium">
+              <span className="inline-flex w-5 h-5 items-center justify-center rounded-full bg-green-600 text-white text-xs">
+                ✓
+              </span>
+              <span>Personal Info</span>
+            </div>
+
+            <span className="text-gray-300">›</span>
+
+            {/* Step 2 - completed */}
+            <div className="flex items-center gap-2 text-green-600 font-medium">
+              <span className="inline-flex w-5 h-5 items-center justify-center rounded-full bg-green-600 text-white text-xs">
+                ✓
+              </span>
+              <span>ID Verification</span>
+            </div>
+
+            <span className="text-gray-300">›</span>
+
+            {/* Step 3 - active */}
+            <div className="flex items-center gap-2 text-green-600 font-medium">
+              <span className="inline-flex w-5 h-5 items-center justify-center rounded-full border border-green-600 text-green-700 text-xs">
+                3
+              </span>
+              <span>Address Proof</span>
+            </div>
+
+            <span className="text-gray-300">›</span>
+            <span className="text-gray-400">Review</span>
+          </div>
+
+          {/* Main card */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="font-medium text-gray-900 mb-1">
+              Address Verification
+            </h2>
+            <p className="text-sm text-gray-500 mb-6">
+              Provide your address and upload proof of residence
+            </p>
+
+            {/* Address fields */}
+            <div className="space-y-4">
+              <div>
+                <div className="text-sm text-gray-800 mb-1">
+                  Address Line 1 <span className="text-red-500">*</span>
+                </div>
+                <input
+                  aria-label="Address Line 1"
+                  value={address1}
+                  onChange={(e) => setAddress1(e.target.value)}
+                  placeholder="123 Main Street"
+                  className={[
+                    "w-full h-10 rounded-md border bg-white px-3 py-2",
+                    "hover:border-gray-400",
+                    "focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-400",
+                  ].join(" ")}
+                />
+              </div>
+
+              <div>
+                <div className="text-sm text-gray-800 mb-1">
+                  Address Line 2{" "}
+                  <span className="text-gray-400">(optional)</span>
+                </div>
+                <input
+                  aria-label="Address Line 2"
+                  value={address2}
+                  onChange={(e) => setAddress2(e.target.value)}
+                  placeholder="Apt 4B"
+                  className={[
+                    "w-full h-10 rounded-md border bg-white px-3 py-2",
+                    "hover:border-gray-400",
+                    "focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-400",
+                  ].join(" ")}
+                />
+              </div>
+
+              {/* City + State/Province */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm text-gray-800 mb-1">
+                    City <span className="text-red-500">*</span>
+                  </div>
+                  <input
+                    aria-label="City"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="New York"
                     className={[
-                      "inline-flex items-center gap-2",
-                      "px-4 h-10 rounded-md border",
-                      "text-sm text-gray-800 bg-white",
-                      "cursor-pointer select-none",
-                      "hover:bg-gray-50 hover:border-gray-400",
+                      "w-full h-10 rounded-md border bg-white px-3 py-2",
+                      "hover:border-gray-400",
                       "focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-400",
                     ].join(" ")}
-                  >
-                    <UploadIcon />
-                    Upload Document
-                  </div>
+                  />
+                </div>
 
-                  <div className="mt-3 text-xs text-gray-500">
-                    JPG, PNG or PDF • Max 10MB
+                <div>
+                  <div className="text-sm text-gray-800 mb-1">
+                    State/Province <span className="text-red-500">*</span>
+                  </div>
+                  <input
+                    aria-label="State or Province"
+                    value={stateProvince}
+                    onChange={(e) => setStateProvince(e.target.value)}
+                    placeholder="NY"
+                    className={[
+                      "w-full h-10 rounded-md border bg-white px-3 py-2",
+                      "hover:border-gray-400",
+                      "focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-400",
+                    ].join(" ")}
+                  />
+                </div>
+              </div>
+
+              {/* Postal + Country */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm text-gray-800 mb-1">
+                    Postal Code{" "}
+                    <span className="text-gray-400">(optional)</span>
+                  </div>
+                  <input
+                    aria-label="Postal Code"
+                    value={postalCode}
+                    onChange={(e) => setPostalCode(e.target.value)}
+                    placeholder="10001"
+                    className={[
+                      "w-full h-10 rounded-md border bg-white px-3 py-2",
+                      "hover:border-gray-400",
+                      "focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-400",
+                    ].join(" ")}
+                  />
+                </div>
+
+                <div>
+                  <div className="text-sm text-gray-800 mb-1">
+                    Country <span className="text-red-500">*</span>
+                  </div>
+                  <SimpleDropdown
+                    ariaLabel="Country"
+                    value={country}
+                    onChange={setCountry}
+                    placeholder="Select country"
+                    options={countryOptions}
+                  />
+                </div>
+              </div>
+
+              {/* Upload proof */}
+              <div className="pt-2">
+                <div className="text-sm text-gray-800 mb-1">
+                  Upload Proof of Address{" "}
+                  <span className="text-red-500">*</span>
+                </div>
+                <p className="text-xs text-gray-500 mb-2">
+                  Utility bill, bank statement, or lease agreement (within last
+                  3 months)
+                </p>
+
+                <div className="rounded-md border bg-white p-8 flex flex-col items-center text-center">
+                  <DocIcon />
+
+                  <div className="mt-4">
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => console.log("Upload clicked (static)")}
+                      onKeyDown={(e) =>
+                        handleKeyboardActivate(e, () =>
+                          console.log("Upload clicked (static)")
+                        )
+                      }
+                      className={[
+                        "inline-flex items-center gap-2",
+                        "px-4 h-10 rounded-md border",
+                        "text-sm text-gray-800 bg-white",
+                        "cursor-pointer select-none",
+                        "hover:bg-gray-50 hover:border-gray-400",
+                        "focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-400",
+                      ].join(" ")}
+                    >
+                      <UploadIcon />
+                      Upload Document
+                    </div>
+
+                    <div className="mt-3 text-xs text-gray-500">
+                      JPG, PNG or PDF • Max 10MB
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Accepted documents box */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 text-sm text-yellow-900">
-              <div className="font-medium mb-2">Accepted documents:</div>
-              <ul className="list-disc ml-5 space-y-1 text-sm text-yellow-800">
-                <li>Utility bill (electricity, water, gas)</li>
-                <li>Bank or credit card statement</li>
-                <li>Lease or rental agreement</li>
-                <li>Government-issued document</li>
-              </ul>
-              <div className="text-xs text-yellow-800 mt-2">
-                Document must be dated within the last 3 months
+              {/* Accepted documents box */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 text-sm text-yellow-900">
+                <div className="font-medium mb-2">Accepted documents:</div>
+                <ul className="list-disc ml-5 space-y-1 text-sm text-yellow-800">
+                  <li>Utility bill (electricity, water, gas)</li>
+                  <li>Bank or credit card statement</li>
+                  <li>Lease or rental agreement</li>
+                  <li>Government-issued document</li>
+                </ul>
+                <div className="text-xs text-yellow-800 mt-2">
+                  Document must be dated within the last 3 months
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Bottom actions (router.push like you asked) */}
-        <div className="mt-6 flex items-center justify-between">
-          <p
-            role="button"
-            tabIndex={0}
-            onClick={() => router.push("../verify/step-2")}
-            onKeyDown={(e) =>
-              handleKeyboardActivate(e, () => router.push("../verify/step-2"))
-            }
-            className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer select-none"
-          >
-            Back
-          </p>
-
-          <div className="flex items-center gap-6">
-            <p
-              // href="#"
-              className="no-underline text-sm text-gray-500 hover:text-gray-700 cursor-pointer"
-            >
-              Save &amp; Exit
-            </p>
-
+          {/* Bottom actions (router.push like you asked) */}
+          <div className="mt-6 flex items-center justify-between">
             <p
               role="button"
               tabIndex={0}
-              onClick={() => router.push("../verify/step-4")}
+              onClick={() => router.push("../verify/step-2")}
               onKeyDown={(e) =>
-                handleKeyboardActivate(e, () => router.push("/verify/step-4"))
+                handleKeyboardActivate(e, () => router.push("../verify/step-2"))
               }
-              className="bg-green-500 hover:bg-green-600 text-white px-5 h-10 inline-flex items-center justify-center rounded-md text-sm cursor-pointer select-none"
+              className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer select-none"
             >
-              Continue
+              Back
             </p>
+
+            <div className="flex items-center gap-6">
+              <p
+                // href="#"
+                className="no-underline text-sm text-gray-500 hover:text-gray-700 cursor-pointer"
+              >
+                Save &amp; Exit
+              </p>
+
+              <p
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  // Validate required fields
+                  if (
+                    !address1 ||
+                    !city ||
+                    !stateProvince ||
+                    !postalCode ||
+                    !country
+                  ) {
+                    alert("Please fill in all required fields");
+                    return;
+                  }
+
+                  // Save step-3 data to localStorage
+                  const step3Data = {
+                    address1,
+                    address2,
+                    city,
+                    stateProvince,
+                    postalCode,
+                    country,
+                  };
+                  localStorage.setItem(
+                    "verifyStep3Data",
+                    JSON.stringify(step3Data)
+                  );
+                  router.push("../verify/step-4");
+                }}
+                onKeyDown={(e) =>
+                  handleKeyboardActivate(e, () => {
+                    // Validate required fields
+                    if (
+                      !address1 ||
+                      !city ||
+                      !stateProvince ||
+                      !postalCode ||
+                      !country
+                    ) {
+                      alert("Please fill in all required fields");
+                      return;
+                    }
+
+                    const step3Data = {
+                      address1,
+                      address2,
+                      city,
+                      stateProvince,
+                      postalCode,
+                      country,
+                    };
+                    localStorage.setItem(
+                      "verifyStep3Data",
+                      JSON.stringify(step3Data)
+                    );
+                    router.push("/verify/step-4");
+                  })
+                }
+                className="bg-green-500 hover:bg-green-600 text-white px-5 h-10 inline-flex items-center justify-center rounded-md text-sm cursor-pointer select-none"
+              >
+                Continue
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-    </main>
-    <ClientFooter/>
+      </main>
+      <ClientFooter />
     </>
   );
 }

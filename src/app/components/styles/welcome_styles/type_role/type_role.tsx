@@ -124,8 +124,8 @@ export default function TypeRole() {
 
       console.log("Role updated successfully");
 
-      // Navigate to type_picked AFTER successful update
-      router.push(`/page/type_role/type_picked?role=${selectedRole}`);
+      // Navigate to verify/step-1 AFTER successful update
+      router.push("/page/client/verify/step-1");
     } catch (err: unknown) {
       console.error("Error updating role:", err);
       const errorMessage = err instanceof Error ? err.message : String(err);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import ClientNavHeader from "@/app/components/styles/global_styles/client/header";
 import ClientFooter from "@/app/components/styles/global_styles/client/footer";
 
@@ -14,22 +15,51 @@ function handleKeyboardActivate(
   }
 }
 
+interface Step1Data {
+  fullName: string;
+  dob: string;
+  nationality: string;
+  sex: string;
+  phone: string;
+}
+
+interface Step2Data {
+  fullname?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  nationality?: string;
+  documentNumber?: string;
+}
+
+interface Step3Data {
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+}
+
 export default function Step4Page() {
   const router = useRouter();
+  const [step1Data, setStep1Data] = useState<Step1Data | null>(null);
+  const [step2Data, setStep2Data] = useState<Step2Data | null>(null);
+  const [step3Data, setStep3Data] = useState<Step3Data | null>(null);
 
-  // Mock review data (matches screenshot style)
-  const personalInfo = {
-    fullName: "John Doe",
-    dob: "1990-05-15",
-    nationality: "US",
-    phone: "+1 (555) 123-4567",
-  };
+  useEffect(() => {
+    // Load data from localStorage
+    const step1Str = localStorage.getItem("verifyStep1Data");
+    const step2Str = localStorage.getItem("verifyStep2Data");
+    const step3Str = localStorage.getItem("verifyStep3Data");
 
-  const addressInfo = {
-    line1: "123 Main Street, Apt 4B",
-    line2: "New York, NY 10001",
-    country: "United States",
-  };
+    if (step1Str) {
+      setStep1Data(JSON.parse(step1Str));
+    }
+    if (step2Str) {
+      setStep2Data(JSON.parse(step2Str));
+    }
+    if (step3Str) {
+      setStep3Data(JSON.parse(step3Str));
+    }
+  }, []);
 
   function handleSubmit() {
     // Save completion status
@@ -39,6 +69,17 @@ export default function Step4Page() {
     // Navigate to client settings
     router.push("/page/client/setting");
   }
+
+  // Format date to readable format
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "N/A";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
 
   return (
     <>
@@ -143,22 +184,27 @@ export default function Step4Page() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div className="text-gray-500">Full Name:</div>
                 <div className="text-gray-900 sm:text-right">
-                  {personalInfo.fullName}
+                  {step1Data?.fullName || "N/A"}
                 </div>
 
                 <div className="text-gray-500">Date of Birth:</div>
                 <div className="text-gray-900 sm:text-right">
-                  {personalInfo.dob}
+                  {step1Data?.dob ? formatDate(step1Data.dob) : "N/A"}
                 </div>
 
                 <div className="text-gray-500">Nationality:</div>
                 <div className="text-gray-900 sm:text-right">
-                  {personalInfo.nationality}
+                  {step1Data?.nationality || "N/A"}
+                </div>
+
+                <div className="text-gray-500">Sex:</div>
+                <div className="text-gray-900 sm:text-right">
+                  {step1Data?.sex || "N/A"}
                 </div>
 
                 <div className="text-gray-500">Phone:</div>
                 <div className="text-gray-900 sm:text-right">
-                  {personalInfo.phone}
+                  {step1Data?.phone || "N/A"}
                 </div>
               </div>
             </div>
@@ -167,7 +213,7 @@ export default function Step4Page() {
             <div className="my-6 border-t" />
 
             {/* ID Verification */}
-            <div className="flex items-center justify-between py-1">
+            <div className="flex items-center justify-between py-1 mb-3">
               <div className="text-sm font-medium text-gray-900">
                 ID Verification
               </div>
@@ -185,6 +231,57 @@ export default function Step4Page() {
                 Edit
               </div>
             </div>
+
+            {step2Data && (
+              <div className="bg-gray-50 rounded-md border border-gray-100 p-4 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                  {step2Data.fullname && (
+                    <>
+                      <div className="text-gray-500">Full Name (ID):</div>
+                      <div className="text-gray-900 sm:text-right">
+                        {step2Data.fullname}
+                      </div>
+                    </>
+                  )}
+
+                  {step2Data.dateOfBirth && (
+                    <>
+                      <div className="text-gray-500">Date of Birth (ID):</div>
+                      <div className="text-gray-900 sm:text-right">
+                        {step2Data.dateOfBirth}
+                      </div>
+                    </>
+                  )}
+
+                  {step2Data.gender && (
+                    <>
+                      <div className="text-gray-500">Gender (ID):</div>
+                      <div className="text-gray-900 sm:text-right">
+                        {step2Data.gender}
+                      </div>
+                    </>
+                  )}
+
+                  {step2Data.nationality && (
+                    <>
+                      <div className="text-gray-500">Nationality (ID):</div>
+                      <div className="text-gray-900 sm:text-right">
+                        {step2Data.nationality}
+                      </div>
+                    </>
+                  )}
+
+                  {step2Data.documentNumber && (
+                    <>
+                      <div className="text-gray-500">Document Number:</div>
+                      <div className="text-gray-900 sm:text-right">
+                        {step2Data.documentNumber}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="my-4 border-t" />
 
@@ -221,9 +318,13 @@ export default function Step4Page() {
             </div>
 
             <div className="bg-gray-50 rounded-md border border-gray-100 p-4 text-sm text-gray-800 space-y-1">
-              <div>{addressInfo.line1}</div>
-              <div>{addressInfo.line2}</div>
-              <div>{addressInfo.country}</div>
+              <div>{step3Data?.address || "N/A"}</div>
+              <div>
+                {step3Data?.city && step3Data?.postalCode
+                  ? `${step3Data.city}, ${step3Data.postalCode}`
+                  : step3Data?.city || step3Data?.postalCode || "N/A"}
+              </div>
+              <div>{step3Data?.country || "N/A"}</div>
             </div>
           </div>
 

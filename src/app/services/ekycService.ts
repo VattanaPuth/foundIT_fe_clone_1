@@ -5,13 +5,23 @@ export interface EkycRequest {
   fullname: string;
   dob: string; // YYYY-MM-DD format
   docType: "ID_CARD" | "PASSPORT" | "DRIVER_LICENSE";
+  sex?: string;
+  nationality?: string;
 }
 
 export interface EkycResponse {
-  verified: boolean;
-  matchedFields: string[];
-  mismatchedFields: string[];
-  message: string;
+  success: boolean;
+  reason: string;
+  fullname?: string;
+  height?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  documentNumber?: string;
+  createDate?: string;
+  expirationDate?: string;
+  address?: string;
+  nationality?: string;
+  docType?: string;
 }
 
 class EkycService {

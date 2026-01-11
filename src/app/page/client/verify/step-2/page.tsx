@@ -170,11 +170,24 @@ export default function Step2Page() {
           fullname: step1Data.fullName,
           dob: step1Data.dob,
           docType: documentType,
+          sex: step1Data.sex,
+          nationality: step1Data.nationality,
         },
         authHeader
       );
 
       setVerificationResult(result);
+
+      // Check if verification was successful
+      if (!result.success) {
+        // Show error message with mismatch details
+        setError(
+          result.reason ||
+            "Verification failed: Information provided does not match the document."
+        );
+        setUploading(false);
+        return;
+      }
 
       // Save verification result and document info to localStorage
       const verificationData = {
@@ -188,11 +201,10 @@ export default function Step2Page() {
         JSON.stringify(verificationData)
       );
 
-      // Auto-navigate to step-3 after showing result (2 seconds for verified, 3 seconds for warnings)
-      const delay = result.verified ? 2000 : 3000;
+      // Auto-navigate to step-3 after showing success result (2 seconds)
       setTimeout(() => {
         router.push("../verify/step-3");
-      }, delay);
+      }, 2000);
     } catch (err) {
       const errorMessage =
         err instanceof Error
@@ -369,33 +381,30 @@ export default function Step2Page() {
               )}
 
               {/* Verification result */}
-              {verificationResult && (
-                <div
-                  className={`mt-3 text-sm rounded-md p-3 border ${
-                    verificationResult.verified
-                      ? "text-green-700 bg-green-50 border-green-200"
-                      : "text-yellow-700 bg-yellow-50 border-yellow-200"
-                  }`}
-                >
+              {verificationResult && verificationResult.success && (
+                <div className="mt-3 text-sm rounded-md p-3 border text-green-700 bg-green-50 border-green-200">
                   <div className="font-medium mb-2">
-                    {verificationResult.verified
-                      ? "✓ Verification Successful"
-                      : "⚠ Verification Complete with Warnings"}
+                    ✓ Verification Successful
                   </div>
-                  <div className="text-xs">{verificationResult.message}</div>
-                  {verificationResult.mismatchedFields &&
-                    verificationResult.mismatchedFields.length > 0 && (
-                      <div className="mt-2 text-xs">
-                        <div className="font-medium">Mismatched Fields:</div>
-                        <ul className="list-disc ml-5">
-                          {verificationResult.mismatchedFields.map(
-                            (field: string) => (
-                              <li key={field}>{field}</li>
-                            )
-                          )}
-                        </ul>
+                  <div className="text-xs">{verificationResult.reason}</div>
+                  {verificationResult.fullname && (
+                    <div className="mt-2 text-xs space-y-1">
+                      <div>
+                        <strong>Name:</strong> {verificationResult.fullname}
                       </div>
-                    )}
+                      {verificationResult.dateOfBirth && (
+                        <div>
+                          <strong>DOB:</strong> {verificationResult.dateOfBirth}
+                        </div>
+                      )}
+                      {verificationResult.documentNumber && (
+                        <div>
+                          <strong>Document #:</strong>{" "}
+                          {verificationResult.documentNumber}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
