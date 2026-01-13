@@ -100,26 +100,34 @@ export default function TalentList({
             <div className="flex justify-between items-start mb-4">
               <div className="flex gap-4">
                 {/* Profile Avatar - Dynamic from backend */}
-                {talent.imageUrl ? (
-                  <img
-                    src={talent.imageUrl}
-                    alt={`${talent.name}'s profile`}
-                    className="w-16 h-16 rounded-full object-cover"
-                    onError={(e) => {
-                      // Fallback to letter avatar if image fails to load
-                      e.currentTarget.style.display = "none";
-                      e.currentTarget.nextElementSibling?.classList.remove(
-                        "hidden"
-                      );
-                    }}
-                  />
-                ) : null}
                 <div
-                  className={`w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-xl ${
-                    talent.imageUrl ? "hidden" : ""
-                  }`}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    router.push(`/page/client/freelancerpf?id=${talent.id}`);
+                  }}
+                  title="View Profile"
                 >
-                  {talent.name.charAt(0).toUpperCase()}
+                  {talent.imageUrl ? (
+                    <img
+                      src={talent.imageUrl}
+                      alt={`${talent.name}'s profile`}
+                      className="w-16 h-16 rounded-full object-cover"
+                      onError={(e) => {
+                        // Fallback to letter avatar if image fails to load
+                        e.currentTarget.style.display = "none";
+                        e.currentTarget.nextElementSibling?.classList.remove(
+                          "hidden"
+                        );
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className={`w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-xl ${
+                      talent.imageUrl ? "hidden" : ""
+                    }`}
+                  >
+                    {talent.name.charAt(0).toUpperCase()}
+                  </div>
                 </div>
 
                 <div>

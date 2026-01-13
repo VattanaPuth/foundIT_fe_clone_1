@@ -1,3 +1,34 @@
+// Types for search results
+interface JobResult {
+  id: string;
+  title?: string;
+  name?: string;
+  company?: string;
+}
+
+interface TalentResult {
+  id: string;
+  name?: string;
+  title?: string;
+  company?: string;
+}
+
+interface OrderResult {
+  id: string;
+  title?: string;
+}
+
+interface ContractResult {
+  id: string;
+  title?: string;
+}
+
+interface SearchResults {
+  jobs: JobResult[];
+  talent: TalentResult[];
+  orders: OrderResult[];
+  contracts: ContractResult[];
+}
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -149,6 +180,75 @@ function RoleSwitchModal({
 }
 
 export default function ClientNavHeader() {
+  // Global search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResults>({
+    jobs: [],
+    talent: [],
+    orders: [],
+    contracts: [],
+  });
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  // Global search handler
+  const handleGlobalSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    setSearchLoading(true);
+    setShowSearchDropdown(true);
+    try {
+      const token = localStorage.getItem("token");
+      // Fetch jobs
+      const jobsRes = await fetch(
+        "http://localhost:8085/jobs/search?query=" +
+          encodeURIComponent(searchQuery),
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const jobs = jobsRes.ok ? await jobsRes.json() : [];
+      // Fetch talent
+      const talentRes = await fetch(
+        "http://localhost:8085/gigs/freelancer/client-view?limit=10&search=" +
+          encodeURIComponent(searchQuery),
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const talent = talentRes.ok ? (await talentRes.json()).content || [] : [];
+      // Fetch orders
+      const ordersRes = await fetch(
+        "http://localhost:8085/orders/search?query=" +
+          encodeURIComponent(searchQuery),
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const orders = ordersRes.ok ? await ordersRes.json() : [];
+      // Fetch contracts
+      const contractsRes = await fetch(
+        "http://localhost:8085/contracts/search?query=" +
+          encodeURIComponent(searchQuery),
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const contracts = contractsRes.ok ? await contractsRes.json() : [];
+      setSearchResults({ jobs, talent, orders, contracts });
+    } catch (err) {
+      setSearchResults({ jobs: [], talent: [], orders: [], contracts: [] });
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // Hide dropdown on outside click
+  useEffect(() => {
+    if (!showSearchDropdown) return;
+    const handler = (e) => {
+      if (
+        !e.target.closest(".global-search-dropdown") &&
+        !e.target.closest(".global-search-input")
+      ) {
+        setShowSearchDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showSearchDropdown]);
   const [isJobsDropdownOpen, setIsJobsDropdownOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [currentRole, setCurrentRole] = useState("client");
@@ -162,21 +262,39 @@ export default function ClientNavHeader() {
   // Simulate role switch with loading
   const handleRoleSwitch = async () => {
     setIsRoleSwitching(true);
-
-    // Simulate API call / data loading
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Update role
-    setCurrentRole(targetRole);
+    try {
+      // Persist role to backend (same as type_role logic)
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const userId = user?.id;
+      if (userId && token) {
+        await fetch(`http://localhost:8085/users/${userId}/role`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ role: targetRole.toUpperCase() }),
+        });
+        user.role = targetRole.toUpperCase();
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+      setCurrentRole(targetRole);
+    } catch (err) {
+      console.error("Role switch failed", err);
+    }
     setIsRoleSwitching(false);
     setShowRoleModal(false);
     setIsUserDropdownOpen(false);
-
-    // Here you would typically navigate or update the UI based on the new role
-    console.log(`Switched to ${targetRole} mode`);
+    // Use typeRoleId block for navigation
+    let typeRoleId = "";
+    if (targetRole === "client") typeRoleId = "hire_talent";
+    else if (targetRole === "freelancer") typeRoleId = "find_job";
+    else if (targetRole === "seller") typeRoleId = "sell_products";
+    router.push(`/page/type_role?role=${typeRoleId}`);
   };
 
-  const initiateRoleSwitch = (role) => {
+  const initiateRoleSwitch = (role: string) => {
     if (role === currentRole) return;
     setTargetRole(role);
     setShowRoleModal(true);
@@ -200,10 +318,16 @@ export default function ClientNavHeader() {
   const router = useRouter();
 
   const handleNavigation = (path) => {
-    console.log(`Navigating to: ${path}`);
     setIsUserDropdownOpen(false);
     setIsJobsDropdownOpen(false);
-    router.push(path);
+    if (path === "/logout") {
+      import("@/app/services/authService").then(({ default: authService }) => {
+        authService.logout();
+        router.push("/page/sign_in");
+      });
+    } else {
+      router.push(path);
+    }
   };
 
   const handleCartClick = () => {
@@ -220,7 +344,11 @@ export default function ClientNavHeader() {
             src="/favicon.ico"
             alt="logo"
           />
-          <div className="flex w-xs sm:w-sm lg:w-xl xl:w-2xl items-center gap-x-2 h-12 border-t-1 border-b-1 border-[#F3F3F5] bg-gray-100 p-3 rounded-2xl">
+          <form
+            className="flex w-xs sm:w-sm lg:w-xl xl:w-2xl items-center gap-x-2 h-12 border-t-1 border-b-1 border-[#F3F3F5] bg-gray-100 p-3 rounded-2xl"
+            onSubmit={handleGlobalSearch}
+            autoComplete="off"
+          >
             <svg
               width="20"
               height="20"
@@ -238,12 +366,225 @@ export default function ClientNavHeader() {
             </svg>
             <input
               type="text"
-              className="w-full p-3 rounded-xl outline-none border-none focus:ring-0 bg-transparent"
-              placeholder="Search jobs, talent..."
+              className="w-full p-3 rounded-xl outline-none border-none focus:ring-0 bg-transparent global-search-input"
+              placeholder="Search jobs, talent, orders, contracts..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => searchQuery && setShowSearchDropdown(true)}
             />
-          </div>
-        </div>
+          </form>
+          {/* ============================ */}
+          {showSearchDropdown && (
+            <div className="absolute left-52 top-full mt-2 w-[35%] bg-white border border-gray-200 rounded-xl shadow-2xl z-[9999] overflow-hidden global-search-dropdown">
+              {searchLoading ? (
+                <div className="flex flex-col items-center justify-center py-16 px-4">
+                  <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <p className="text-gray-600 font-medium">Searching...</p>
+                </div>
+              ) : Object.entries(searchResults).every(
+                  ([k, v]) => v.length === 0
+                ) ? (
+                <div className="flex flex-col items-center justify-center py-16 px-4">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <svg
+                      className="w-8 h-8 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-gray-700 font-medium mb-1">
+                    No results found
+                  </p>
+                  <p className="text-gray-400 text-sm">
+                    Try adjusting your search terms
+                  </p>
+                </div>
+              ) : (
+                <div className="max-h-[500px] overflow-y-auto">
+                  {/* Jobs Section */}
+                  {searchResults.jobs.length > 0 && (
+                    <div className="border-b border-gray-100">
+                      <div className="px-4 py-2 bg-gray-50">
+                        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                          Jobs
+                        </h3>
+                      </div>
+                      <ul>
+                        {searchResults.jobs.map((job, i) => (
+                          <li
+                            key={job.id || i}
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-50 last:border-b-0"
+                            onClick={() => {
+                              router.push(
+                                `/page/client/application?jobId=${job.id}`
+                              );
+                              setShowSearchDropdown(false);
+                            }}
+                          >
+                            <svg
+                              className="w-5 h-5 text-gray-400 flex-shrink-0"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                              />
+                            </svg>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {job.title || job.name}
+                              </p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
+                  {/* Talent Section */}
+                  {searchResults.talent.length > 0 && (
+                    <div className="border-b border-gray-100">
+                      <ul>
+                        {searchResults.talent.map((talent, i) => (
+                          <li
+                            key={talent.id || i}
+                            className="flex items-center gap-x-3 py-3 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-50 last:border-b-0"
+                            onClick={() => {
+                              router.push(
+                                `/page/client/viewprofile?id=${talent.id}`
+                              );
+                              setShowSearchDropdown(false);
+                            }}
+                          >
+                            <svg
+                              className="w-4 h-4 text-gray-400 flex-shrink-0"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                              />
+                            </svg>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {talent.name || talent.title}
+                              </p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Orders Section */}
+                  {searchResults.orders.length > 0 && (
+                    <div className="border-b border-gray-100">
+                      <div className="px-4 py-2 bg-gray-50">
+                        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                          Orders
+                        </h3>
+                      </div>
+                      <ul>
+                        {searchResults.orders.map((order, i) => (
+                          <li
+                            key={order.id || i}
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-50 last:border-b-0"
+                            onClick={() => {
+                              router.push(
+                                `/page/client/orders?orderId=${order.id}`
+                              );
+                              setShowSearchDropdown(false);
+                            }}
+                          >
+                            <svg
+                              className="w-5 h-5 text-gray-400 flex-shrink-0"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                              />
+                            </svg>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {order.title || order.id}
+                              </p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Contracts Section */}
+                  {searchResults.contracts.length > 0 && (
+                    <div>
+                      <div className="px-4 py-2 bg-gray-50">
+                        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                          Contracts
+                        </h3>
+                      </div>
+                      <ul>
+                        {searchResults.contracts.map((contract, i) => (
+                          <li
+                            key={contract.id || i}
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-50 last:border-b-0"
+                            onClick={() => {
+                              router.push(
+                                `/page/client/active-contracts?contractId=${contract.id}`
+                              );
+                              setShowSearchDropdown(false);
+                            }}
+                          >
+                            <svg
+                              className="w-5 h-5 text-gray-400 flex-shrink-0"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {contract.title || contract.id}
+                              </p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        {/* =============================== */}
         <div className="flex items-center justify-between space-x-4 pt-3">
           <div className="flex items-center space-x-8 text-xl ml-3 sm:ml-3 lg:ml-3">
             {/* Jobs Dropdown */}
@@ -277,7 +618,7 @@ export default function ClientNavHeader() {
                     <div className="py-4 px-6 space-y-5 text-lg text-gray-800">
                       <div
                         className="hover:bg-gray-50 cursor-pointer py-2 -mx-6 px-6 transition"
-                        onClick={() => handleNavigation("/page/client/orders")}
+                        onClick={() => handleNavigation("/page/client/order")}
                       >
                         My Orders
                       </div>
@@ -291,9 +632,7 @@ export default function ClientNavHeader() {
                       </div>
                       <div
                         className="hover:bg-gray-50 cursor-pointer py-2 -mx-6 px-6 transition"
-                        onClick={() =>
-                          handleNavigation("/page/client/active-contracts")
-                        }
+                        onClick={() => handleNavigation("/page/client/home")}
                       >
                         Active Contracts
                       </div>
@@ -327,7 +666,10 @@ export default function ClientNavHeader() {
               </svg>
             </div>
 
-            <div className="hidden xl:block lg:block gap-x-3 hover:cursor-pointer active:opacity-30">
+            <div
+              onClick={() => handleNavigation("/page/client/messages")}
+              className="hidden xl:block lg:block gap-x-3 hover:cursor-pointer active:opacity-30"
+            >
               <svg
                 className="-mt-4 w-5 h-5"
                 xmlns="http://www.w3.org/2000/svg"
@@ -344,7 +686,10 @@ export default function ClientNavHeader() {
               </svg>
             </div>
 
-            <div className="hidden xl:block lg:block gap-x-3 hover:cursor-pointer active:opacity-30">
+            <div
+              onClick={() => handleNavigation("/page/client/notifications")}
+              className="hidden xl:block lg:block gap-x-3 hover:cursor-pointer active:opacity-30"
+            >
               <svg
                 className="-mt-4 w-6 h-6"
                 viewBox="0 0 24 24"
@@ -397,7 +742,6 @@ export default function ClientNavHeader() {
                   <div className="px-6 pt-3 border-b border-gray-200">
                     <p className="text-2xl text-gray-900">My Account</p>
                   </div>
-
                   {/* Work Mode Section */}
                   <div className="px-6 py-3">
                     <p className="text-sm text-gray-500 mb-2">Work Mode</p>
@@ -540,7 +884,7 @@ export default function ClientNavHeader() {
                   {/* Main Menu Items */}
                   <div className="px-6 py-3 border-t border-gray-200 space-y-1">
                     <div
-                      onClick={() => handleNavigation("/page/client/profile")}
+                      onClick={() => handleNavigation("/page/client/editpf")}
                       className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 rounded-lg cursor-pointer transition"
                     >
                       <svg
@@ -553,9 +897,9 @@ export default function ClientNavHeader() {
                         <path
                           d="M17 19C17 17.6044 17 16.9067 16.8278 16.3389C16.44 15.0605 15.4395 14.06 14.1611 13.6722C13.5933 13.5 12.8956 13.5 11.5 13.5H6.5C5.10444 13.5 4.40665 13.5 3.83886 13.6722C2.56045 14.06 1.56004 15.0605 1.17224 16.3389C1 16.9067 1 17.6044 1 19M13.5 5.5C13.5 7.98528 11.4853 10 9 10C6.51472 10 4.5 7.98528 4.5 5.5C4.5 3.01472 6.51472 1 9 1C11.4853 1 13.5 3.01472 13.5 5.5Z"
                           stroke="#717182"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                       </svg>
                       <span className="text-gray-900">Profile</span>
@@ -572,17 +916,17 @@ export default function ClientNavHeader() {
                         xmlns="http://www.w3.org/2000/svg"
                       >
                         <path
-                          d="M3.86621 4.76562C4.33464 4.76571 4.784 4.95197 5.11523 5.2832C5.44647 5.61444 5.63273 6.06379 5.63281 6.53223V10.5322C5.63281 11.0008 5.44655 11.4509 5.11523 11.7822C4.78401 12.1134 4.33457 12.2987 3.86621 12.2988H1.86621C1.39766 12.2988 0.947525 12.1135 0.616211 11.7822C0.284897 11.4509 0.0996094 11.0008 0.0996094 10.5322V6.53223C0.0996956 6.06387 0.285075 5.61442 0.616211 5.2832C0.947525 4.95189 1.39766 4.76562 1.86621 4.76562H3.86621ZM10.5322 8.76562C11.0008 8.76562 11.4509 8.95189 11.7822 9.2832C12.1134 9.61443 12.2987 10.0639 12.2988 10.5322C12.2988 11.0008 12.1135 11.4509 11.7822 11.7822C11.4509 12.1135 11.0008 12.2988 10.5322 12.2988H8.53223C8.06387 12.2987 7.61442 12.1134 7.2832 11.7822C6.95189 11.4509 6.76562 11.0008 6.76562 10.5322C6.76571 10.0638 6.95197 9.61444 7.2832 9.2832C7.61444 8.95197 8.0638 8.76571 8.53223 8.76562H10.5322ZM1.86621 5.63281C1.62752 5.63281 1.39827 5.7277 1.22949 5.89648C1.06089 6.06517 0.965906 6.29373 0.96582 6.53223V10.5322C0.96582 10.7709 1.06071 11.0002 1.22949 11.1689C1.39828 11.3377 1.62752 11.4326 1.86621 11.4326H3.86621C4.10471 11.4325 4.33326 11.3375 4.50195 11.1689C4.67074 11.0002 4.76562 10.7709 4.76562 10.5322V6.53223C4.76554 6.29365 4.67066 6.06519 4.50195 5.89648C4.33325 5.72778 4.10479 5.6329 3.86621 5.63281H1.86621ZM8.53223 9.63281C8.29365 9.6329 8.06519 9.72778 7.89648 9.89648C7.72778 10.0652 7.6329 10.2936 7.63281 10.5322C7.63281 10.7709 7.7277 11.0002 7.89648 11.1689C8.06517 11.3375 8.29373 11.4325 8.53223 11.4326H10.5322C10.7709 11.4326 11.0002 11.3377 11.1689 11.1689C11.3377 11.0002 11.4326 10.7709 11.4326 10.5322C11.4325 10.2937 11.3375 10.0652 11.1689 9.89648C11.0002 9.7277 10.7709 9.63281 10.5322 9.63281H8.53223ZM10.5322 0.0996094C11.0008 0.0996094 11.4509 0.284897 11.7822 0.616211C12.1135 0.947525 12.2988 1.39766 12.2988 1.86621V5.86621C12.2987 6.33457 12.1134 6.78401 11.7822 7.11523C11.4509 7.44655 11.0008 7.63281 10.5322 7.63281H8.53223C8.06379 7.63273 7.61444 7.44647 7.2832 7.11523C6.95197 6.784 6.76571 6.33464 6.76562 5.86621V1.86621C6.76562 1.39766 6.95189 0.947525 7.2832 0.616211C7.61442 0.285075 8.06387 0.0996957 8.53223 0.0996094H10.5322ZM8.53223 0.96582C8.29373 0.965907 8.06517 1.06089 7.89648 1.22949C7.7277 1.39827 7.63281 1.62752 7.63281 1.86621V5.86621C7.6329 6.10479 7.72778 6.33325 7.89648 6.50195C8.06519 6.67066 8.29365 6.76554 8.53223 6.76562H10.5322C10.7709 6.76562 11.0002 6.67074 11.1689 6.50195C11.3375 6.33326 11.4325 6.10471 11.4326 5.86621V1.86621C11.4326 1.62752 11.3377 1.39828 11.1689 1.22949C11.0002 1.06071 10.7709 0.96582 10.5322 0.96582H8.53223ZM3.86621 0.0996094C4.33457 0.0996955 4.78401 0.285075 5.11523 0.616211C5.44655 0.947525 5.63281 1.39766 5.63281 1.86621C5.63273 2.33464 5.44647 2.784 5.11523 3.11523C4.784 3.44647 4.33464 3.63273 3.86621 3.63281H1.86621C1.39766 3.63281 0.947525 3.44655 0.616211 3.11523C0.285075 2.78401 0.0996955 2.33457 0.0996094 1.86621C0.0996094 1.39766 0.284897 0.947525 0.616211 0.616211C0.947525 0.284897 1.39766 0.0996094 1.86621 0.0996094H3.86621ZM1.86621 0.96582C1.62752 0.96582 1.39827 1.06071 1.22949 1.22949C1.06071 1.39827 0.96582 1.62752 0.96582 1.86621C0.965906 2.10471 1.06089 2.33326 1.22949 2.50195C1.39827 2.67074 1.62752 2.76562 1.86621 2.76562H3.86621C4.10479 2.76554 4.33325 2.67066 4.50195 2.50195C4.67066 2.33325 4.76554 2.10479 4.76562 1.86621C4.76562 1.62752 4.67074 1.39827 4.50195 1.22949C4.33326 1.06089 4.10471 0.965906 3.86621 0.96582H1.86621Z"
+                          d="M3.86621 4.76562C4.33464 4.76571 4.784 4.95197 5.11523 5.2832C5.44647 5.61444 5.63273 6.06379 5.63281 6.53223V10.5322C5.63281 11.0008 5.44655 11.4509 5.11523 11.7822C4.78401 12.1134 4.33457 12.2987 3.86621 12.2988H1.86621C1.39766 12.2988 0.947525 12.1135 0.616211 11.7822C0.284897 11.4509 0.0996094 11.0008 0.0996094 10.5322V6.53223C0.0996956 6.06387 0.285075 5.61442 0.616211 5.2832C0.947525 4.95189 1.39766 4.76562 1.86621 4.76562H3.86621ZM10.5322 8.76562C11.0008 8.76562 11.4509 8.95189 11.7822 9.2832C12.1134 9.61443 12.2987 10.0639 12.2988 10.5322C12.2988 11.0008 12.1135 11.4509 11.7822 11.7822C11.4509 12.1135 11.0008 12.2988 10.5322 12.2988H8.53223C8.06387 12.2987 7.61442 12.1134 7.2832 11.7822C6.95189 11.4509 6.76562 11.0008 6.76562 10.5322C6.76571 10.0638 6.95197 9.61444 7.2832 9.2832C7.61444 8.95197 8.0638 8.76571 8.53223 8.76562H10.5322ZM1.86621 5.63281C1.62752 5.63281 1.39827 5.7277 1.22949 5.89648C1.06089 6.06517 0.965906 6.29373 0.96582 6.53223V10.5322C0.96582 10.7709 1.06071 11.0002 1.22949 11.1689C1.39828 11.3377 1.62752 11.4326 1.86621 11.4326H3.86621C4.10471 11.4325 4.33326 11.3375 4.50195 11.1689C4.67074 11.0002 4.76562 10.7709 4.76562 10.5322V6.53223C4.76554 6.29365 4.67066 6.06519 4.50195 5.89648C4.33325 5.72778 4.10479 5.6329 3.86621 5.63281H1.86621ZM8.53223 9.63281C8.29365 9.6329 8.06519 9.72778 7.89648 9.89648C7.72778 10.0652 7.6329 10.2936 7.63281 10.5322C7.63281 10.7709 7.7277 11.0002 7.89648 11.1689C8.06517 11.3375 8.29373 11.4325 8.53223 11.4326H10.5322C10.7709 11.4326 11.0002 11.3377 11.1689 11.1689C11.3377 11.0002 11.4326 10.7709 11.4326 10.5322C11.4325 10.2937 11.3375 10.0652 11.1689 9.89648C11.0002 9.7277 10.7709 9.63281 10.5322 9.63281H8.53223ZM10.5322 0.0996094C11.0008 0.0996094 11.4509 0.284897 11.7822 0.616211C12.1135 0.947525 12.2988 1.39766 12.2988 1.86621V5.86621C12.2987 6.33457 12.1134 6.78401 11.7822 7.11523C11.4509 7.44655 11.0008 7.63281 10.5322 7.63281H8.53223C8.06379 7.63273 7.61444 7.44647 7.2832 7.11523C6.95197 6.784 6.76571 6.33464 6.76562 5.86621V1.86621C6.76562 1.39766 6.95189 0.947525 7.2832 0.616211C7.61442 0.285075 8.06387 0.0996957 8.53223 0.0996094H10.5322ZM8.53223 0.96582C8.29373 0.965907 8.06517 1.06089 7.89648 1.22949C7.7277 1.39827 7.63281 1.62752 7.63281 1.86621V5.86621C7.6329 6.10479 7.72778 6.33325 7.89648 6.50195C8.06519 6.67066 8.29365 6.76554 8.53223 6.76562H10.5322C10.7709 6.76562 11.0002 6.67074 11.1689 6.50195C11.3375 6.33326 11.4325 6.10471 11.4326 5.86621V1.86621C11.4326 1.62752 11.3377 1.39828 11.1689 1.22949C11.0002 1.06071 10.7709 0.96582 10.5322 0.96582H8.53223ZM3.86621 0.0996094C4.33457 0.0996955 4.78401 0.285075 5.11523 0.616211C5.44655 0.947525 5.63281 1.39766 5.63281 1.86621C5.63273 2.33464 5.44647 2.784 5.11523 3.11523C4.784 3.44647 4.33464 3.63273 3.86621 3.63281H1.86621C1.39766 3.63281 0.947525 3.44655 0.616211 3.11523C0.285075 2.78401 0.0996955 2.33457 0.0996094 1.86621C0.0996094 1.39766 0.284897 0.947525 0.616211 0.616211C0.947525 0.284897 1.39766 0.0996094 1.86621 0.0996094H3.86621ZM1.86621 0.96582C1.62752 0.96582 1.39827 1.06071 1.22949 1.22949C1.06071 1.39827 0.96582 1.62752 0.96582 1.86621C0.965906 2.10471 1.06089 2.33326 1.22949 2.50195C1.39827 2.67074 1.62752 2.76562 1.86621 2.76562H3.86621C4.10479 2.76554 4.33325 2.67066 4.50195 2.50195C4.67074 2.33325 4.76554 2.10479 4.76562 1.86621C4.76562 1.62752 4.67074 1.39827 4.50195 1.22949C4.33326 1.06089 4.10471 0.965906 3.86621 0.96582H1.86621Z"
                           fill="#717182"
                           stroke="#717182"
-                          stroke-width="0.2"
+                          strokeWidth="0.2"
                         />
                       </svg>
                       <span className="text-gray-900">Dashboard</span>
                     </div>
 
                     <div
-                      onClick={() => handleNavigation("/page/client/orders")}
+                      onClick={() => handleNavigation("/page/client/order")}
                       className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 rounded-lg cursor-pointer transition"
                     >
                       <svg
@@ -594,9 +938,9 @@ export default function ClientNavHeader() {
                         <path
                           d="M14.1978 6C14.1978 7.06087 13.7764 8.07828 13.0263 8.82843C12.2761 9.57857 11.2587 10 10.1978 10C9.13696 10 8.11955 9.57857 7.3694 8.82843C6.61926 8.07828 6.19783 7.06087 6.19783 6M1.83105 5.40138L1.13105 13.8014C0.980672 15.6059 0.905483 16.5082 1.21051 17.2042C1.47852 17.8157 1.94286 18.3204 2.53002 18.6382C3.1983 19 4.10369 19 5.91447 19H14.4812C16.292 19 17.1974 19 17.8656 18.6382C18.4528 18.3204 18.9171 17.8157 19.1851 17.2042C19.4902 16.5082 19.415 15.6059 19.2646 13.8014L18.5646 5.40138C18.4352 3.84875 18.3705 3.07243 18.0267 2.48486C17.7239 1.96744 17.2731 1.5526 16.7323 1.29385C16.1182 1 15.3392 1 13.7812 1L6.61447 1C5.05645 1 4.27745 1 3.66335 1.29384C3.12257 1.5526 2.67173 1.96744 2.36896 2.48486C2.02513 3.07243 1.96043 3.84875 1.83105 5.40138Z"
                           stroke="#717182"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                       </svg>
                       <span className="text-gray-900">My Orders</span>
@@ -615,30 +959,30 @@ export default function ClientNavHeader() {
                         <path
                           d="M10.668 4L13.3346 13.3333"
                           stroke="#717182"
-                          stroke-width="1.33333"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.33333"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                         <path
                           d="M8 4V13.3333"
                           stroke="#717182"
-                          stroke-width="1.33333"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.33333"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                         <path
                           d="M5.33203 5.33398V13.334"
                           stroke="#717182"
-                          stroke-width="1.33333"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.33333"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                         <path
                           d="M2.66797 2.66602V13.3327"
                           stroke="#717182"
-                          stroke-width="1.33333"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.33333"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                       </svg>
                       <span className="text-gray-900">Library</span>
@@ -665,11 +1009,10 @@ export default function ClientNavHeader() {
                       <span className="text-gray-900">Favorites</span>
                     </div>
                   </div>
-
                   {/* Bottom Menu Items */}
                   <div className="px-6 py-3 border-t border-gray-100 space-y-1">
                     <div
-                      onClick={() => handleNavigation("/page/client/settings")}
+                      onClick={() => handleNavigation("/page/client/setting")}
                       className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 rounded-lg cursor-pointer transition"
                     >
                       <svg
@@ -697,7 +1040,7 @@ export default function ClientNavHeader() {
                     </div>
 
                     <div
-                      onClick={() => handleNavigation("/page/client/billing")}
+                      onClick={() => handleNavigation("/page/client/home")}
                       className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 rounded-lg cursor-pointer transition"
                     >
                       <svg
@@ -718,7 +1061,7 @@ export default function ClientNavHeader() {
                     </div>
 
                     <div
-                      onClick={() => handleNavigation("/page/help")}
+                      onClick={() => handleNavigation("/page/client/home")}
                       className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 rounded-lg cursor-pointer transition"
                     >
                       <svg
@@ -728,7 +1071,7 @@ export default function ClientNavHeader() {
                         xmlns="http://www.w3.org/2000/svg"
                       >
                         <path
-                          d="M9.09 9C9.3251 8.33167 9.78915 7.76811 10.4 7.40913C11.0108 7.05016 11.7289 6.91894 12.4272 7.03871C13.1255 7.15849 13.7588 7.52152 14.2151 8.06353C14.6713 8.60553 14.9211 9.29152 14.92 10C14.92 12 11.92 13 11.92 13M12 17H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z"
+                          d="M9.09 9C9.3251 8.33167 9.78915 7.76811 10.4 7.40913C11.0108 7.05016 11.7289 6.91894 12.4272 7.03871C13.1255 7.15849 13.7588 7.52152 14.2151 8.06353C14.6713 8.60553 14.9211 9.29152 14.92 10C14.92 12 11.92 13 11.92 13M12 17H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 1 17.5228 1 12C1 6.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 12Z"
                           stroke="#717182"
                           strokeWidth="2"
                           strokeLinecap="round"
@@ -738,7 +1081,6 @@ export default function ClientNavHeader() {
                       <span className="text-gray-900">Help</span>
                     </div>
                   </div>
-
                   {/* Logout */}
                   <div className="px-6 py-3 border-t border-gray-100">
                     <div

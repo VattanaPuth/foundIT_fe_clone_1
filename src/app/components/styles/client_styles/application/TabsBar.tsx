@@ -26,7 +26,9 @@ function TabPill({
       onKeyDown={(e) => handleKeyboardActivate(e, onClick)}
       className={cx(
         "px-4 py-2 rounded-xl text-sm cursor-pointer select-none transition",
-        active ? "bg-white border shadow-sm text-gray-900" : "text-gray-700 hover:bg-gray-200"
+        active
+          ? "bg-white border shadow-sm text-gray-900"
+          : "text-gray-700 hover:bg-gray-200"
       )}
       aria-label={label}
     >
@@ -38,25 +40,31 @@ function TabPill({
 export default function TabsBar({
   tab,
   onChange,
+  proposalsCount = 0,
+  messagesCount = 0,
+  hiredCount = 0,
 }: {
   tab: TabKey;
   onChange: (t: TabKey) => void;
+  proposalsCount?: number;
+  messagesCount?: number;
+  hiredCount?: number;
 }) {
   return (
     <div className="rounded-xl bg-gray-100 p-1 inline-flex gap-1">
       <TabPill
         active={tab === "proposals"}
-        label="Proposals (3)"
+        label={`Proposals (${proposalsCount})`}
         onClick={() => onChange("proposals")}
       />
       <TabPill
         active={tab === "messages"}
-        label="Messages"
+        label={`Messages (${messagesCount})`}
         onClick={() => onChange("messages")}
       />
       <TabPill
         active={tab === "hired"}
-        label="Hired"
+        label={`Hired (${hiredCount})`}
         onClick={() => onChange("hired")}
       />
     </div>

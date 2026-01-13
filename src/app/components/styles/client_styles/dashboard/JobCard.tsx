@@ -12,13 +12,7 @@ function Chip({ text }: { text: string }) {
   );
 }
 
-function Badge({  
-  text,
-  tone,
-}: {
-  text: string;
-  tone: "green" | "gray";
-}) {
+function Badge({ text, tone }: { text: string; tone: "green" | "gray" }) {
   const cls =
     tone === "green"
       ? "bg-green-50 text-green-700 border-green-200"
@@ -115,11 +109,11 @@ export default function JobCard({
               role="button"
               tabIndex={0}
               onClick={() => {
-                // blank for now
+                window.location.href = "/page/client/application";
               }}
               onKeyDown={(e) =>
                 handleKeyboardActivate(e, () => {
-                  // blank
+                  window.location.href = "/page/client/application";
                 })
               }
               className="rounded-md border bg-white px-3 py-2 text-xs text-gray-700 cursor-pointer select-none
@@ -137,7 +131,9 @@ export default function JobCard({
         {/* top row: title + badge */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-gray-900">{job.title}</div>
+            <div className="text-sm font-semibold text-gray-900">
+              {job.title}
+            </div>
             {job.subtitle ? (
               <div className="text-sm font-semibold text-gray-900">
                 {job.subtitle}

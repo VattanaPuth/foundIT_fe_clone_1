@@ -1147,7 +1147,7 @@ export default function Page() {
                       without making it public
                     </li>
                     <li>
-                      • <strong>Publish Profile & All Jobs</strong> - Make your
+                      • <strong>Publish</strong> - Make your
                       profile and all draft jobs visible to freelancers
                     </li>
                     <li>
@@ -1200,7 +1200,7 @@ export default function Page() {
                 className="h-9 px-4 rounded-md bg-green-500 hover:bg-green-600 text-white text-sm cursor-pointer select-none flex items-center"
                 title="Publish all draft jobs and make your profile public"
               >
-                Publish Profile & All Jobs
+                Publish
               </div>
             </div>
           </div>

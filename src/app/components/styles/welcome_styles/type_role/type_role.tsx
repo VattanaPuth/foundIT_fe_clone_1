@@ -4,7 +4,7 @@ import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { Role } from "@/app/types/auth";
-import authService from "@/app/services/authService";
+
 
 type RoleItem = {
   id: string;
@@ -16,7 +16,58 @@ type RoleItem = {
 export default function TypeRole() {
   const router = useRouter();
   const { updateUserRole, user } = useAuth();
+  // Check for pre-selected role from localStorage or query param
+  const getPreselectedRole = () => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const roleParam = params.get("role");
+      if (roleParam) return roleParam;
+      const userObj = localStorage.getItem("user");
+      if (userObj) {
+        try {
+          const parsed = JSON.parse(userObj);
+          if (parsed.role) {
+            let mapped = "";
+            if (parsed.role === "FREELANCER") mapped = "find_job";
+            if (parsed.role === "CLIENT") mapped = "hire_talent";
+            if (parsed.role === "SELLER") mapped = "sell_products";
+            console.log(
+              "[type_role] Found user.role:",
+              parsed.role,
+              "-> mapped to:",
+              mapped
+            );
+            return mapped;
+          }
+        } catch (e) {
+          console.log("[type_role] Error parsing user from localStorage", e);
+        }
+      } else {
+        console.log("[type_role] No user found in localStorage");
+      }
+    }
+    return "";
+  };
   const [selectedRole, setSelectedRole] = useState<string>("");
+
+  // Keep selectedRole in sync with localStorage and query param
+  React.useEffect(() => {
+    const updateRole = () => {
+      const preselected = getPreselectedRole();
+      if (preselected && preselected !== selectedRole) {
+        setSelectedRole(preselected);
+      }
+    };
+    updateRole();
+    // Listen for storage events (other tabs)
+    window.addEventListener("storage", updateRole);
+    // Poll every 300ms in case of fast navigation
+    const interval = setInterval(updateRole, 300);
+    return () => {
+      window.removeEventListener("storage", updateRole);
+      clearInterval(interval);
+    };
+  }, [selectedRole]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 

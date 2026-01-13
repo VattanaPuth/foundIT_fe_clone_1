@@ -268,24 +268,42 @@ export default function ApplicationPage() {
     fetchHired();
   }, [user?.id]);
 
-  // Calculate job stats and update job info from proposal data
+  // Fetch job details and update job info and stats
   useEffect(() => {
-    const views = 127; // Could be fetched from a job post endpoint
-    const proposalsCount = proposalList.length;
-
-    setJobStats({
-      views,
-      proposals: proposalsCount,
-    });
-
-    setJobInfo({
-      title: "Build a React Web Application", // Could be fetched from job post endpoint
-      postedLabel: "Posted 2 days ago", // Could be calculated from job post date
-      views,
-      proposals: proposalsCount,
-      visibility: "Public",
-    });
-  }, [proposalList]);
+    const fetchJobDetails = async () => {
+      if (!user?.id) return;
+      try {
+        const response = await fetch(
+          `http://localhost:8085/jobs/client/${user.id}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          const job = Array.isArray(data) ? data[0] : data;
+          setJobStats({
+            views: job.views || 0,
+            proposals: proposalList.length,
+          });
+          setJobInfo({
+            title: job.title || "-",
+            postedLabel: job.dueDate ? `Due ${job.dueDate}` : "-",
+            views: job.views || 0,
+            proposals: proposalList.length,
+            visibility: job.status || "-",
+          });
+        }
+      } catch (e) {
+        setJobStats({ views: 0, proposals: proposalList.length });
+        setJobInfo({
+          title: "-",
+          postedLabel: "-",
+          views: 0,
+          proposals: proposalList.length,
+          visibility: "-",
+        });
+      }
+    };
+    fetchJobDetails();
+  }, [user?.id, proposalList]);
 
   return (
     <>
@@ -410,17 +428,8 @@ export default function ApplicationPage() {
               </div>
             </div>
 
-            {/* Hire button + Job actions dropdown */}
+            {/* Job actions dropdown only (Hire button removed) */}
             <div className="flex items-center gap-2">
-              <p
-                onClick={() =>
-                  router.push("/page/client/application")
-                }
-                className="h-9 px-4 rounded-[12px] mt-3 bg-[#10B981] active:opacity-30 text-white text-sm font-medium cursor-pointer select-none inline-flex items-center justify-center transition"
-              >
-                Hire
-              </p>
-
               <DropDownMenu
                 align="right"
                 open={jobMenuOpen}
@@ -488,7 +497,13 @@ export default function ApplicationPage() {
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
             {/* Left */}
             <section className="lg:col-span-8">
-              <TabsBar tab={tab} onChange={setTab} />
+              <TabsBar
+                tab={tab}
+                onChange={setTab}
+                proposalsCount={proposalList.length}
+                messagesCount={messages.length}
+                hiredCount={hired.length}
+              />
 
               <div className="mt-4">
                 {tab === "proposals" ? (

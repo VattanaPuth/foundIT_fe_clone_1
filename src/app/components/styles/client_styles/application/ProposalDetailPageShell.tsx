@@ -108,8 +108,9 @@ export default function ProposalDetailPageShell() {
 
     try {
       const token = localStorage.getItem("token");
-      const clientId = localStorage.getItem("userId"); // Assuming userId is stored
+      const clientId = localStorage.getItem("userId");
 
+      // Accept proposal API call
       const response = await fetch(
         `http://localhost:8085/proposals/${proposalId}/accept?clientId=${clientId}`,
         {
@@ -123,7 +124,24 @@ export default function ProposalDetailPageShell() {
 
       if (response.ok) {
         alert("Proposal accepted successfully!");
-        router.push("/page/client/application");
+        // Prepare freelancer data for milestone contract page
+        const freelancerData = {
+          id: proposalData.freelancerId,
+          gigId: proposalData.jobPostId,
+          name: proposalData.freelancerName,
+          title: proposalData.freelancerSkill || "Professional",
+          rating: proposalData.freelancerRating || 0,
+          reviewCount: proposalData.freelancerReviewCount || 0,
+          hourlyRate: proposalData.proposedBudget || 0,
+          avatarUrl:
+            proposalData.freelancerAvatar || "/images/default-avatar.png",
+        };
+        // Pass freelancer data via query param
+        router.push(
+          `/page/client/milestone?freelancer=${encodeURIComponent(
+            JSON.stringify(freelancerData)
+          )}`
+        );
       } else {
         alert("Failed to accept proposal");
       }
