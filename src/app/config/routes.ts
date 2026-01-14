@@ -13,8 +13,8 @@ export const PUBLIC_ROUTES: string[] = [
   "/",
   "/page/sign_in",
   "/page/sign_up",
+  "/page/forgot_password",
   "/page/oauth2/callback",
-  "/forgot_password",
 ];
 
 // Route configurations with role requirements
@@ -36,6 +36,11 @@ export const ROUTE_CONFIGS: Record<string, RouteConfig> = {
     path: "/page/sign_up",
     isPublic: true,
     description: "Sign up",
+  },
+  "/page/forgot_password": {
+    path: "/page/forgot_password",
+    isPublic: true,
+    description: "Forgot password",
   },
   "/page/type_role": {
     path: "/page/type_role",
