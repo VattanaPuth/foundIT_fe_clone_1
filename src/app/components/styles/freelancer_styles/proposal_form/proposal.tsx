@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 // Types for backend integration
 interface JobDetails {
+  id: string | number;
   title: string;
   postedBy: {
     name: string;
-    avatarUrl: string;
+    avatarUrl?: string;
   };
   postedDate: string;
   price: string;
@@ -39,7 +42,10 @@ interface ProposalFormData {
   screeningQuestions: ScreeningQuestion[];
 }
 
-export default function ProposalPage() {
+  function ProposalForm() {
+    const searchParams = useSearchParams();
+    const jobId = searchParams.get("id") || searchParams.get("jobId");
+
   // State management for form data
   const [formData, setFormData] = useState<ProposalFormData>({
     coverLetter: "",
@@ -65,19 +71,43 @@ export default function ProposalPage() {
     ],
   });
 
-  // Mock job details - would come from backend
-  const [jobDetails] = useState<JobDetails>({
-    title: "Full Stack Developer for E-commerce Platform",
-    postedBy: {
-      name: "Yami",
-      avatarUrl: "figma:asset/073608ba28a767b5a531a709622b8c7b4cc3247d.png",
-    },
-    postedDate: "Mar 12, 2024",
-    price: "$5500 fixed",
-    duration: "2-3 months",
-    proposalsCount: 8,
-    isVerifiedClient: true,
-  });
+  // Job details state
+  const [jobDetails, setJobDetails] = useState<JobDetails | null>(null);
+  const [loadingJob, setLoadingJob] = useState(false);
+  const [jobError, setJobError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!jobId) {
+      setJobError("No job ID provided in URL.");
+      return;
+    }
+    setLoadingJob(true);
+    setJobError(null);
+    fetch(`/gigs/client/public/${jobId}`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Job not found");
+        const data = await res.json();
+        // Map backend data to JobDetails shape
+        setJobDetails({
+          id: data.id,
+          title: data.title,
+          postedBy: {
+            name: data.clientName || "Client",
+            avatarUrl: data.clientAvatarUrl || undefined,
+          },
+          postedDate: data.postedDate || "",
+          price: data.payType === "Fixed" ? `$${data.fixedBudget} fixed` : `$${data.hourlyMin}-${data.hourlyMax}/hr`,
+          duration: data.duration || "",
+          proposalsCount: data.proposalsCount || 0,
+          isVerifiedClient: !!data.isVerifiedClient,
+        });
+        setLoadingJob(false);
+      })
+      .catch((err) => {
+        setJobError(err.message || "Failed to fetch job");
+        setLoadingJob(false);
+      });
+  }, [jobId]);
 
   // New milestone form state
   const [newMilestone, setNewMilestone] = useState({
@@ -93,7 +123,7 @@ export default function ProposalPage() {
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const router = useRouter();
 
   // Handlers
   const handleCoverLetterChange = (value: string) => {
@@ -203,14 +233,36 @@ export default function ProposalPage() {
   };
 
   const handleSubmit = () => {
-    // This would be replaced with actual API call
     setIsSubmitting(true);
-    setTimeout(() => {
-      console.log("Submitting proposal:", formData);
-      // Example: await submitProposal(formData);
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-    }, 2000);
+    const token = localStorage.getItem("token");
+    const senderId = localStorage.getItem("userId");
+    const recipientId = jobDetails.clientId; 
+    const form = new URLSearchParams();
+    form.append("senderId", senderId || "");
+    form.append("recipientId", recipientId);
+    form.append("coverLetter", formData.coverLetter);
+    form.append("rate", formData.proposedBudget?.toString() || "");
+    form.append("deliveryTime", formData.deliveryDays?.toString() || "");
+    fetch("http://localhost:8085/chat/sendProposal", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: form.toString(),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to send proposal message");
+        return res.text();
+      })
+      .then(() => {
+        setIsSubmitting(false);
+        router.push("/page/freelancer/home"); // Redirect to freelancer homepage
+      })
+      .catch((err) => {
+        setIsSubmitting(false);
+        setJobError(err.message || "Failed to send proposal message");
+      });
   };
 
   const handleCancel = () => {
@@ -247,233 +299,194 @@ export default function ProposalPage() {
 
   return (
     <div className="bg-white w-full min-h-screen">
-      {/* Success Modal */}
-      {isSubmitted && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full mx-4 shadow-2xl animate-[slideUp_0.3s_ease-out]">
-            <div className="flex flex-col items-center text-center">
-              {/* Success Icon */}
-              <div className="size-16 sm:size-20 bg-[#10b981] rounded-full flex items-center justify-center mb-4">
-                <svg
-                  className="size-8 sm:size-10"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M5 13l4 4L19 7"
-                    stroke="white"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-
-              {/* Success Message */}
-              <p className="font-['Arial:Regular',sans-serif] text-[#1a1a1a] text-xl sm:text-2xl mb-2">
-                Proposal Submitted!
-              </p>
-              <p className="font-['Arial:Regular',sans-serif] text-[#717182] text-sm sm:text-base mb-6">
-                Your proposal has been successfully submitted to the client.
-                You&apos;ll be notified when the client responds.
-              </p>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 w-full">
-                <div
-                  className="flex-1 bg-white border border-[rgba(0,0,0,0.1)] rounded-lg py-2 text-center text-sm text-[#1a1a1a] cursor-pointer hover:bg-gray-50 transition-colors"
-                  onClick={() => setIsSubmitted(false)}
-                >
-                  View Proposal
-                </div>
-                <div
-                  className="flex-1 bg-[#615fff] rounded-lg py-2 text-center text-sm text-white cursor-pointer hover:bg-[#4f39f6] transition-colors"
-                  onClick={() => {
-                    setIsSubmitted(false);
-                    // Navigate to job list or dashboard
-                  }}
-                >
-                  Browse Jobs
-                </div>
-              </div>
-            </div>
-          </div>
+      {/* Loading/Error for job details */}
+      {loadingJob && (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-gray-500">Loading job details...</div>
+        </div>
+      )}
+      {jobError && (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-red-500 font-semibold">{jobError}</div>
         </div>
       )}
 
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Back Button */}
-        <div className="flex items-center gap-2 mb-6 cursor-pointer hover:opacity-70 transition-opacity">
-          <div className="size-4">
-            <svg
-              className="block size-full -mt-2"
-              fill="none"
-              viewBox="0 0 16 16"
-            >
-              <path
-                d="M10 12L6 8L10 4"
-                stroke="#717182"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.33333"
-              />
-            </svg>
+      {
+        !isSubmitting && !loadingJob && !jobError && jobDetails && (
+          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+          {/* Back Button */}
+          <div className="flex items-center gap-2 mb-6 cursor-pointer hover:opacity-70 transition-opacity">
+            <div className="size-4">
+              <svg
+                className="block size-full -mt-2"
+                fill="none"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M10 12L6 8L10 4"
+                  stroke="#717182"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.33333"
+                />
+              </svg>
+            </div>
+            <p className="font-['Arial:Regular',sans-serif] leading-5 text-[#717182] text-sm">
+              Back to Job
+            </p>
           </div>
-          <p className="font-['Arial:Regular',sans-serif] leading-5 text-[#717182] text-sm">
-            Back to Job
-          </p>
-        </div>
 
-        {/* Header */}
-        <div className="flex flex-col gap-2 mb-6">
-          <p className="font-['Arial:Regular',sans-serif] leading-9 text-[#1a1a1a] text-xl sm:text-2xl md:text-3xl">
-            Submit Proposal
-          </p>
-          <p className="font-['Arial:Regular',sans-serif] leading-6 text-[#717182] text-sm sm:text-base">
-            Apply for this job by completing the form below
-          </p>
-        </div>
+          {/* Header */}
+          <div className="flex flex-col gap-2 mb-6">
+            <p className="font-['Arial:Regular',sans-serif] leading-9 text-[#1a1a1a] text-xl sm:text-2xl md:text-3xl">
+              Submit Proposal
+            </p>
+            <p className="font-['Arial:Regular',sans-serif] leading-6 text-[#717182] text-sm sm:text-base">
+              Apply for this job by completing the form below
+            </p>
+          </div>
 
-        {/* Job Details Card */}
-        <div className="bg-white border-l-4 border-[#615fff] rounded-2xl mb-6 p-4 sm:p-6 shadow-sm">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-            <div className="flex-1">
-              <p className="font-['Arial:Regular',sans-serif] leading-6 text-[#1a1a1a] text-base mb-2">
-                {jobDetails.title}
-              </p>
-              <div className="flex items-center gap-2 mb-3">
-                <p className="font-['Arial:Regular',sans-serif] leading-5 text-[#717182] text-sm">
-                  Posted by {jobDetails.postedBy.name}
+          {/* Job Details Card */}
+          <div className="bg-white border-l-4 border-[#615fff] rounded-2xl mb-6 p-4 sm:p-6 shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+              <div className="flex-1">
+                <p className="font-['Arial:Regular',sans-serif] leading-6 text-[#1a1a1a] text-base mb-2">
+                  {jobDetails.title}
                 </p>
-                <p className="font-['Arial:Regular',sans-serif] leading-5 text-[#717182] text-sm">
-                  • {jobDetails.postedDate}
-                </p>
+                <div className="flex items-center gap-2 mb-3">
+                  <p className="font-['Arial:Regular',sans-serif] leading-5 text-[#717182] text-sm">
+                    Posted by {jobDetails.postedBy.name}
+                  </p>
+                  <p className="font-['Arial:Regular',sans-serif] leading-5 text-[#717182] text-sm">
+                    • {jobDetails.postedDate}
+                  </p>
+                </div>
+              </div>
+              {jobDetails.isVerifiedClient && (
+                <div className="bg-[#dbeafe] px-3 rounded-lg">
+                  <p className="font-['Arial:Regular',sans-serif] leading-4 text-[#1447e6] text-xs mt-3">
+                    Verified Client
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-4 sm:gap-6 mt-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="size-4">
+                  <svg
+                    className="block size-full"
+                    fill="none"
+                    viewBox="0 0 16 16"
+                  >
+                    <path
+                      d="M8 1.33333V14.6667"
+                      stroke="#717182"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.33333"
+                    />
+                    <path
+                      d="M11.3333 3.33333H6.33333C5.71449 3.33333 5.121 3.57917 4.68342 4.01675C4.24583 4.45434 4 5.04783 4 5.66667C4 6.2855 4.24583 6.879 4.68342 7.31658C5.121 7.75417 5.71449 8 6.33333 8H9.66667C10.2855 8 10.879 8.24583 11.3166 8.68342C11.7542 9.121 12 9.71449 12 10.3333C12 10.9522 11.7542 11.5457 11.3166 11.9832C10.879 12.4208 10.2855 12.6667 9.66667 12.6667H4"
+                      stroke="#717182"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.33333"
+                    />
+                  </svg>
+                </div>
+                <span className="text-[#1a1a1a]">{jobDetails.price}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="size-4">
+                  <svg
+                    className="block size-full"
+                    fill="none"
+                    viewBox="0 0 16 16"
+                  >
+                    <rect
+                      x="2"
+                      y="3.33333"
+                      width="12"
+                      height="10.6667"
+                      rx="1.33333"
+                      stroke="#717182"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.33333"
+                    />
+                    <path
+                      d="M5.33333 1.33333V4"
+                      stroke="#717182"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.33333"
+                    />
+                    <path
+                      d="M10.6667 1.33333V4"
+                      stroke="#717182"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.33333"
+                    />
+                    <path
+                      d="M2 6.66667H14"
+                      stroke="#717182"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.33333"
+                    />
+                  </svg>
+                </div>
+                <span className="text-[#1a1a1a]">{jobDetails.duration}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="size-4">
+                  <svg
+                    className="block size-full"
+                    fill="none"
+                    viewBox="0 0 16 16"
+                  >
+                    <rect
+                      x="3"
+                      y="4"
+                      width="10"
+                      height="10"
+                      rx="1"
+                      stroke="#717182"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.33333"
+                    />
+                    <path
+                      d="M6.66667 6H5.33333"
+                      stroke="#717182"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.33333"
+                    />
+                    <path
+                      d="M10.6667 8.66667H5.33333"
+                      stroke="#717182"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.33333"
+                    />
+                    <path
+                      d="M10.6667 11.3333H5.33333"
+                      stroke="#717182"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.33333"
+                    />
+                  </svg>
+                </div>
+                <span className="text-[#1a1a1a]">
+                  {jobDetails.proposalsCount} proposals
+                </span>
               </div>
             </div>
-            {jobDetails.isVerifiedClient && (
-              <div className="bg-[#dbeafe] px-3 rounded-lg">
-                <p className="font-['Arial:Regular',sans-serif] leading-4 text-[#1447e6] text-xs mt-3">
-                  Verified Client
-                </p>
-              </div>
-            )}
           </div>
-          <div className="flex flex-wrap gap-4 sm:gap-6 mt-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="size-4">
-                <svg
-                  className="block size-full"
-                  fill="none"
-                  viewBox="0 0 16 16"
-                >
-                  <path
-                    d="M8 1.33333V14.6667"
-                    stroke="#717182"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.33333"
-                  />
-                  <path
-                    d="M11.3333 3.33333H6.33333C5.71449 3.33333 5.121 3.57917 4.68342 4.01675C4.24583 4.45434 4 5.04783 4 5.66667C4 6.2855 4.24583 6.879 4.68342 7.31658C5.121 7.75417 5.71449 8 6.33333 8H9.66667C10.2855 8 10.879 8.24583 11.3166 8.68342C11.7542 9.121 12 9.71449 12 10.3333C12 10.9522 11.7542 11.5457 11.3166 11.9832C10.879 12.4208 10.2855 12.6667 9.66667 12.6667H4"
-                    stroke="#717182"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.33333"
-                  />
-                </svg>
-              </div>
-              <span className="text-[#1a1a1a]">{jobDetails.price}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="size-4">
-                <svg
-                  className="block size-full"
-                  fill="none"
-                  viewBox="0 0 16 16"
-                >
-                  <rect
-                    x="2"
-                    y="3.33333"
-                    width="12"
-                    height="10.6667"
-                    rx="1.33333"
-                    stroke="#717182"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.33333"
-                  />
-                  <path
-                    d="M5.33333 1.33333V4"
-                    stroke="#717182"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.33333"
-                  />
-                  <path
-                    d="M10.6667 1.33333V4"
-                    stroke="#717182"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.33333"
-                  />
-                  <path
-                    d="M2 6.66667H14"
-                    stroke="#717182"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.33333"
-                  />
-                </svg>
-              </div>
-              <span className="text-[#1a1a1a]">{jobDetails.duration}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="size-4">
-                <svg
-                  className="block size-full"
-                  fill="none"
-                  viewBox="0 0 16 16"
-                >
-                  <rect
-                    x="3"
-                    y="4"
-                    width="10"
-                    height="10"
-                    rx="1"
-                    stroke="#717182"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.33333"
-                  />
-                  <path
-                    d="M6.66667 6H5.33333"
-                    stroke="#717182"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.33333"
-                  />
-                  <path
-                    d="M10.6667 8.66667H5.33333"
-                    stroke="#717182"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.33333"
-                  />
-                  <path
-                    d="M10.6667 11.3333H5.33333"
-                    stroke="#717182"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.33333"
-                  />
-                </svg>
-              </div>
-              <span className="text-[#1a1a1a]">
-                {jobDetails.proposalsCount} proposals
-              </span>
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* Cover Letter Card */}
         <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] mb-6 p-1">
@@ -488,13 +501,13 @@ export default function ProposalPage() {
               className="w-full bg-[#f3f3f5] rounded-lg px-3 py-2 text-sm text-[#1a1a1a] min-h-[200px] resize-y focus:outline-none focus:ring-2 focus:ring-[#615fff]"
               placeholder="Dear Client,
 
-I am excited to apply for this position because...
+                  I am excited to apply for this position because...
 
-My relevant experience includes...
+                  My relevant experience includes...
 
-I can deliver this project by...
+                  I can deliver this project by...
 
-Looking forward to working with you!"
+                  Looking forward to working with you!"
               value={formData.coverLetter}
               onChange={(e) => handleCoverLetterChange(e.target.value)}
             />
@@ -1153,15 +1166,13 @@ Looking forward to working with you!"
               }`}
               onClick={handleSubmit}
             >
-              {isSubmitting
-                ? "Submitting..."
-                : isSubmitted
-                ? "Submitted"
-                : "Submit Proposal"}
+              {isSubmitting ? "Submitting..." : "Submit Proposal"}
             </div>
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default ProposalForm;

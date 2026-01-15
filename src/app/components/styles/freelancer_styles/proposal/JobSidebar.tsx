@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 function handleKeyboardActivate(
   e: React.KeyboardEvent,
@@ -14,6 +15,7 @@ function handleKeyboardActivate(
 
 export default function JobSidebar({
   budget,
+  jobId,
 }: {
   budget: {
     amount: string;
@@ -22,8 +24,11 @@ export default function JobSidebar({
     proposalsText: string;
     competitionPercent: number;
   };
+  jobId?: string;
 }) {
+  const router = useRouter();
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [applied, setApplied] = useState(false); // TODO: check from backend
 
   // dropdown (reason)
   const reasonOptions = useMemo(
@@ -64,7 +69,8 @@ export default function JobSidebar({
       if (!reasonOpen) return;
       const el = reasonWrapRef.current;
       if (!el) return;
-      if (e.target instanceof Node && !el.contains(e.target)) setReasonOpen(false);
+      if (e.target instanceof Node && !el.contains(e.target))
+        setReasonOpen(false);
     }
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
@@ -116,27 +122,85 @@ export default function JobSidebar({
 
           {/* Buttons (under budget card in Figma) */}
           <div className="mt-4 space-y-2">
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={() => {}}
-              onKeyDown={(e) => handleKeyboardActivate(e, () => {})}
-              className="w-full rounded-md border border-[#615FFF]/40 bg-white px-3 py-2.5 text-center text-sm font-medium text-[#615FFF]
-                         hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#615FFF] focus:border-[#615FFF]"
-            >
-              Back to Applications
-            </div>
+            {applied ? (
+              <>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => router.push("/page/freelancer/application")}
+                  onKeyDown={(e) =>
+                    handleKeyboardActivate(e, () =>
+                      router.push("/page/freelancer/application")
+                    )
+                  }
+                  className="w-full rounded-md border border-[#615FFF]/40 bg-white px-3 py-2.5 text-center text-sm font-medium text-[#615FFF]
+                             hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#615FFF] focus:border-[#615FFF]"
+                >
+                  Back to Applications
+                </div>
 
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={() => setWithdrawOpen(true)}
-              onKeyDown={(e) => handleKeyboardActivate(e, () => setWithdrawOpen(true))}
-              className="w-full rounded-md border border-red-300 bg-white px-3 py-2.5 text-center text-sm font-medium text-red-600
-                         hover:bg-gray-50 focus:outline-none focus:ring-2 "
-            >
-              Withdraw Application
-            </div>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setWithdrawOpen(true)}
+                  onKeyDown={(e) =>
+                    handleKeyboardActivate(e, () => setWithdrawOpen(true))
+                  }
+                  className="w-full rounded-md border border-red-300 bg-white px-3 py-2.5 text-center text-sm font-medium text-red-600
+                             hover:bg-gray-50 focus:outline-none focus:ring-2 "
+                >
+                  Withdraw Application
+                </div>
+              </>
+            ) : (
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  setApplied(true);
+                  // Use jobId prop if available
+                  if (jobId) {
+                    router.push(`/page/freelancer/proposal/form?id=${jobId}`);
+                  } else if (typeof window !== "undefined") {
+                    const url = new URL(window.location.href);
+                    const urlJobId =
+                      url.searchParams.get("id") ||
+                      url.searchParams.get("jobId");
+                    if (urlJobId) {
+                      router.push(
+                        `/page/freelancer/proposal/form?id=${urlJobId}`
+                      );
+                    } else {
+                      alert("Job ID not found in URL. Cannot apply.");
+                    }
+                  } else {
+                    alert("Job ID not found in props or URL. Cannot apply.");
+                  }
+                }}
+                onKeyDown={(e) =>
+                  handleKeyboardActivate(e, () => {
+                    setApplied(true);
+                    if (typeof window !== "undefined") {
+                      const url = new URL(window.location.href);
+                      const jobId =
+                        url.searchParams.get("id") ||
+                        url.searchParams.get("jobId");
+                      if (jobId) {
+                        router.push(
+                          `/page/freelancer/proposal/form?id=${jobId}`
+                        );
+                      } else {
+                        alert("Job ID not found in URL. Cannot apply.");
+                      }
+                    }
+                  })
+                }
+                className="w-full rounded-md border border-[#615FFF]/40 bg-[#615FFF] px-3 py-2.5 text-center text-sm font-medium text-white
+                           hover:bg-[#615FFF]/90 focus:outline-none focus:ring-2 focus:ring-[#615FFF] focus:border-[#615FFF]"
+              >
+                Apply
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -145,7 +209,9 @@ export default function JobSidebar({
       <div className="mt-4 bg-white border border-gray-200 rounded-xl shadow-sm">
         <div className="px-5 py-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-gray-900">About the Client</p>
+            <p className="text-sm font-semibold text-gray-900">
+              About the Client
+            </p>
 
             <div className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-600">
               <div className="w-4 h-4 flex items-center justify-center flex-shrink-0 text-gray-500">
@@ -181,8 +247,10 @@ export default function JobSidebar({
             <div
               role="button"
               tabIndex={0}
-              onClick={() => {}}
-              onKeyDown={(e) => handleKeyboardActivate(e, () => {})}
+              onClick={() => alert("View client profile")}
+              onKeyDown={(e) =>
+                handleKeyboardActivate(e, () => alert("View client profile"))
+              }
               className="w-full rounded-md border border-gray-200 bg-white px-3 py-2.5 text-center text-sm font-medium text-gray-900
                          hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#615FFF] focus:border-[#615FFF]"
             >
@@ -202,7 +270,9 @@ export default function JobSidebar({
           </div>
 
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900">Payment Verified</p>
+            <p className="text-sm font-semibold text-gray-900">
+              Payment Verified
+            </p>
             <p className="mt-1 text-xs text-gray-600">
               This client has verified payment method on file
             </p>
@@ -234,8 +304,8 @@ export default function JobSidebar({
                   Withdraw Application
                 </p>
                 <p className="mt-1 text-xs text-gray-500">
-                  This action cannot be undone. The client will be notified of your
-                  withdrawal.
+                  This action cannot be undone. The client will be notified of
+                  your withdrawal.
                 </p>
               </div>
 
@@ -283,12 +353,23 @@ export default function JobSidebar({
                 >
                   <span className="truncate">{selectedReasonLabel}</span>
                   <div className="w-4 h-4 flex items-center justify-center flex-shrink-0 text-gray-500">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g opacity="0.5">
-<path d="M4 6L8 10L12 6" stroke="#717182" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-</g>
-</svg>
-
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <g opacity="0.5">
+                        <path
+                          d="M4 6L8 10L12 6"
+                          stroke="#717182"
+                          stroke-width="1.33333"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </g>
+                    </svg>
                   </div>
                 </div>
 
@@ -312,7 +393,9 @@ export default function JobSidebar({
                             })
                           }
                           className={`px-3 py-2 text-sm cursor-pointer select-none ${
-                            active ? "bg-gray-50 text-gray-900" : "text-gray-700 hover:bg-gray-50"
+                            active
+                              ? "bg-gray-50 text-gray-900"
+                              : "text-gray-700 hover:bg-gray-50"
                           }`}
                         >
                           {opt.label}
@@ -326,7 +409,9 @@ export default function JobSidebar({
               {/* custom textarea */}
               {reasonKey === "custom" && (
                 <div className="mt-3">
-                  <p className="text-xs font-medium text-gray-700">Custom reason</p>
+                  <p className="text-xs font-medium text-gray-700">
+                    Custom reason
+                  </p>
                   <textarea
                     value={customReason}
                     onChange={(e) => setCustomReason(e.target.value)}
@@ -342,12 +427,35 @@ export default function JobSidebar({
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5 w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0">
                     <div className="w-4 h-4 flex items-center justify-center flex-shrink-0 text-red-600">
-                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M9.9974 18.3337C14.5998 18.3337 18.3307 14.6027 18.3307 10.0003C18.3307 5.39795 14.5998 1.66699 9.9974 1.66699C5.39502 1.66699 1.66406 5.39795 1.66406 10.0003C1.66406 14.6027 5.39502 18.3337 9.9974 18.3337Z" stroke="#E7000B" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M10 6.66699V10.0003" stroke="#E7000B" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M10 13.333H10.0083" stroke="#E7000B" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M9.9974 18.3337C14.5998 18.3337 18.3307 14.6027 18.3307 10.0003C18.3307 5.39795 14.5998 1.66699 9.9974 1.66699C5.39502 1.66699 1.66406 5.39795 1.66406 10.0003C1.66406 14.6027 5.39502 18.3337 9.9974 18.3337Z"
+                          stroke="#E7000B"
+                          stroke-width="1.66667"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                        <path
+                          d="M10 6.66699V10.0003"
+                          stroke="#E7000B"
+                          stroke-width="1.66667"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                        <path
+                          d="M10 13.333H10.0083"
+                          stroke="#E7000B"
+                          stroke-width="1.66667"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
                     </div>
                   </div>
 

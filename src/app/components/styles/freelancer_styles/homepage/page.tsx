@@ -1,15 +1,7 @@
-// src/app/page/freelancer/homepage/page.tsx
-"use client";
-
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  ChevronDown,
-  Filter,
-  Heart,
-  ThumbsDown,
-  Menu,
-  X,
-} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/contexts/AuthContext";
+import { ChevronDown, Filter, Heart, ThumbsDown, Menu, X } from "lucide-react";
 
 type BudgetType = "all" | "fixed" | "hourly";
 type Experience = "Entry" | "Intermediate" | "Expert";
@@ -350,7 +342,9 @@ function FilterSidebarContent(props: {
         <details open className="group">
           <summary className="list-none cursor-pointer select-none">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold text-gray-900">Skills</span>
+              <span className="text-sm font-semibold text-gray-900">
+                Skills
+              </span>
               <ChevronDown className="h-4 w-4 text-gray-500 transition group-open:rotate-180" />
             </div>
           </summary>
@@ -361,7 +355,9 @@ function FilterSidebarContent(props: {
               placeholder="Type to search skills..."
               className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#5B5CF6] focus:border-[#5B5CF6]"
             />
-            <div className="mt-2 text-xs text-gray-500">Add up to 10 skills</div>
+            <div className="mt-2 text-xs text-gray-500">
+              Add up to 10 skills
+            </div>
           </div>
         </details>
 
@@ -371,7 +367,9 @@ function FilterSidebarContent(props: {
         <details open className="group">
           <summary className="list-none cursor-pointer select-none">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold text-gray-900">Budget</span>
+              <span className="text-sm font-semibold text-gray-900">
+                Budget
+              </span>
               <ChevronDown className="h-4 w-4 text-gray-500 transition group-open:rotate-180" />
             </div>
           </summary>
@@ -488,17 +486,19 @@ function FilterSidebarContent(props: {
             </div>
           </summary>
           <div className="mt-3 space-y-2">
-            {(["Entry", "Intermediate", "Expert"] as Experience[]).map((exp) => (
-              <div key={exp} className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={selectedExperience.includes(exp)}
-                  onChange={() => toggleExperience(exp)}
-                  className="h-4 w-4 accent-[#5B5CF6] border-gray-300 rounded"
-                />
-                <div className="text-sm text-gray-700">{exp}</div>
-              </div>
-            ))}
+            {(["Entry", "Intermediate", "Expert"] as Experience[]).map(
+              (exp) => (
+                <div key={exp} className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedExperience.includes(exp)}
+                    onChange={() => toggleExperience(exp)}
+                    className="h-4 w-4 accent-[#5B5CF6] border-gray-300 rounded"
+                  />
+                  <div className="text-sm text-gray-700">{exp}</div>
+                </div>
+              )
+            )}
           </div>
         </details>
 
@@ -508,7 +508,9 @@ function FilterSidebarContent(props: {
         <details open className="group">
           <summary className="list-none cursor-pointer select-none">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold text-gray-900">Client</span>
+              <span className="text-sm font-semibold text-gray-900">
+                Client
+              </span>
               <ChevronDown className="h-4 w-4 text-gray-500 transition group-open:rotate-180" />
             </div>
           </summary>
@@ -570,7 +572,9 @@ function FilterSidebarContent(props: {
         <details open className="group">
           <summary className="list-none cursor-pointer select-none">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold text-gray-900">Posted</span>
+              <span className="text-sm font-semibold text-gray-900">
+                Posted
+              </span>
               <ChevronDown className="h-4 w-4 text-gray-500 transition group-open:rotate-180" />
             </div>
           </summary>
@@ -649,6 +653,9 @@ function FilterSidebarContent(props: {
 }
 
 export default function FreelancerHomepagePage() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+
   // mobile filter drawer
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -667,11 +674,16 @@ export default function FreelancerHomepagePage() {
   const [budgetType, setBudgetType] = useState<BudgetType>("all");
   const [budgetMax, setBudgetMax] = useState<number>(10000);
   const [deliveryTarget, setDeliveryTarget] = useState<DeliveryTarget>("all");
-  const [selectedExperience, setSelectedExperience] = useState<Experience[]>([]);
+  const [selectedExperience, setSelectedExperience] = useState<Experience[]>(
+    []
+  );
   const [paymentVerifiedOnly, setPaymentVerifiedOnly] = useState(false);
   const [repeatHireOnly, setRepeatHireOnly] = useState(false);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]); // default = unticked
   const [postedRange, setPostedRange] = useState<PostedRange>("all");
+  const [jobs, setJobs] = useState<JobItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // lock outside scroll when filter is open
   useEffect(() => {
@@ -682,6 +694,72 @@ export default function FreelancerHomepagePage() {
       document.body.style.overflow = prev || "";
     };
   }, [filterOpen]);
+
+  // Check for refresh parameter on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("refresh") === "true") {
+      // Clear the URL parameter and trigger refresh
+      window.history.replaceState({}, "", window.location.pathname);
+      setRefreshKey((prev) => prev + 1);
+    }
+  }, []);
+
+  // Fetch jobs from API
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          router.push("/page/sign_in");
+          return;
+        }
+
+        const response = await fetch(
+          "http://localhost:8085/gigs/client/public?page=0&size=50",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          // Transform API data to match JobItem interface
+          const transformedJobs: JobItem[] = data.content.map((gig: any) => ({
+            id: gig.id,
+            title: gig.title,
+            category: gig.category,
+            payType: gig.payMode === "fixed" ? "Fixed" : "Hourly",
+            fixedBudget: gig.payMode === "fixed" ? gig.budgetMax : undefined,
+            hourlyMin: gig.payMode === "hourly" ? gig.budgetMin : undefined,
+            hourlyMax: gig.payMode === "hourly" ? gig.budgetMax : undefined,
+            duration: gig.deliveryTime,
+            postedLabel: "Recently posted", // TODO: calculate from created date
+            postedHoursAgo: 1, // TODO: calculate
+            locationLabel: "Remote", // TODO: add location field
+            hireRate: 95, // TODO: calculate from proposals
+            experience: "Intermediate" as Experience, // TODO: add experience field
+            tags: gig.skills ? gig.skills.split(",") : [],
+            description: gig.description,
+            proposalsCount: 0, // TODO: add proposals count
+            paymentVerified: true, // TODO: add verification
+            repeatHire: false, // TODO: add repeat hire logic
+          }));
+          setJobs(transformedJobs);
+        } else {
+          console.error("Failed to fetch jobs");
+        }
+      } catch (error) {
+        console.error("Error fetching jobs:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, [router, refreshKey]);
 
   const toggleFavorite = (id: number) => {
     setFavorites((prev) =>
@@ -724,7 +802,7 @@ export default function FreelancerHomepagePage() {
   };
 
   const filteredJobs = useMemo(() => {
-    return freelancerJobsMock
+    return jobs
       .filter((j) => {
         if (selectedCategory && j.category !== selectedCategory) return false;
 
@@ -812,19 +890,19 @@ export default function FreelancerHomepagePage() {
             {/* top bar with X */}
             <div className="h-14 px-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
               <div className="text-sm font-semibold text-gray-900">Filters</div>
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setFilterOpen(false)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setFilterOpen(false);
-                    }
-                  }}
-                  className="h-9 w-9 rounded-lg border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50"
-                  aria-label="Close filters"
-                >
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => setFilterOpen(false)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setFilterOpen(false);
+                  }
+                }}
+                className="h-9 w-9 rounded-lg border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50"
+                aria-label="Close filters"
+              >
                 <X className="h-4 w-4 text-gray-700" />
               </div>
             </div>
@@ -1002,140 +1080,159 @@ export default function FreelancerHomepagePage() {
             </div>
 
             <div className="mt-4 space-y-4">
-              {filteredJobs.map((job) => {
-                const fav = favorites.includes(job.id);
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-gray-500">Loading jobs...</div>
+                </div>
+              ) : filteredJobs.length === 0 ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-gray-500">No jobs available</div>
+                </div>
+              ) : (
+                filteredJobs.map((job) => {
+                  const fav = favorites.includes(job.id);
 
-                return (
-                  <div
-                    key={job.id}
-                    className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 hover:shadow-sm transition"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <div className="text-sm font-semibold text-gray-900">
-                          {job.title}
-                        </div>
-
-                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-500">
-                          <div className="flex items-center gap-1">
-                            {job.payType === "Fixed" ? (
-                              <span className="font-medium text-gray-700">
-                                Fixed ${money(job.fixedBudget || 0)}
-                              </span>
-                            ) : (
-                              <span className="font-medium text-gray-700">
-                                Hourly ${money(job.hourlyMin || 0)}–
-                                {money(job.hourlyMax || 0)}
-                              </span>
-                            )}
+                  return (
+                    <div
+                      key={job.id}
+                      className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 hover:shadow-sm transition cursor-pointer"
+                      onClick={() => {
+                        if (isAuthenticated) {
+                          router.push(
+                            `/page/freelancer/proposal/form?id=${job.id}`
+                          );
+                        } else {
+                          router.push("/page/(welcome)/sign_in");
+                        }
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-gray-900">
+                            {job.title}
                           </div>
 
-                          <div>{job.duration}</div>
-                          <div>{job.postedLabel}</div>
-                          <div className="flex items-center gap-1">
-                            <span>{job.locationLabel}</span>
-                            {job.timezoneLabel ? (
-                              <span className="text-gray-400">
-                                , {job.timezoneLabel}
-                              </span>
-                            ) : null}
-                          </div>
-                          <div className="text-gray-400">•</div>
-                          <div>Hire rate {job.hireRate}%</div>
-                        </div>
-
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {job.tags.map((t) => (
-                            <div key={t} className={smallChip()}>
-                              {t}
+                          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-1">
+                              {job.payType === "Fixed" ? (
+                                <span className="font-medium text-gray-700">
+                                  Fixed ${money(job.fixedBudget || 0)}
+                                </span>
+                              ) : (
+                                <span className="font-medium text-gray-700">
+                                  Hourly ${money(job.hourlyMin || 0)}–
+                                  {money(job.hourlyMax || 0)}
+                                </span>
+                              )}
                             </div>
-                          ))}
+
+                            <div>{job.duration}</div>
+                            <div>{job.postedLabel}</div>
+                            <div className="flex items-center gap-1">
+                              <span>{job.locationLabel}</span>
+                              {job.timezoneLabel ? (
+                                <span className="text-gray-400">
+                                  , {job.timezoneLabel}
+                                </span>
+                              ) : null}
+                            </div>
+                            <div className="text-gray-400">•</div>
+                            <div>Hire rate {job.hireRate}%</div>
+                          </div>
+
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {job.tags.map((t) => (
+                              <div key={t} className={smallChip()}>
+                                {t}
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="mt-3 text-sm text-gray-600 leading-relaxed">
+                            {job.description}
+                          </div>
                         </div>
 
-                        <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-                          {job.description}
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                          <div
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => toggleFavorite(job.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                toggleFavorite(job.id);
+                              }
+                            }}
+                            className="h-9 w-9 rounded-lg border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50"
+                            aria-label="Favorite"
+                          >
+                            <Heart
+                              className={
+                                "h-4 w-4 " +
+                                (fav
+                                  ? "text-red-500 fill-red-500"
+                                  : "text-gray-500")
+                              }
+                            />
+                          </div>
+
+                          <div
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => {}}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                              }
+                            }}
+                            className="h-9 w-9 rounded-lg border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50"
+                            aria-label="Not interested"
+                          >
+                            <ThumbsDown className="h-4 w-4 text-gray-500" />
+                          </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3 flex-shrink-0">
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => toggleFavorite(job.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              toggleFavorite(job.id);
-                            }
-                          }}
-                          className="h-9 w-9 rounded-lg border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50"
-                          aria-label="Favorite"
-                        >
-                          <Heart
-                            className={
-                              "h-4 w-4 " +
-                              (fav
-                                ? "text-red-500 fill-red-500"
-                                : "text-gray-500")
-                            }
-                          />
-                        </div>
+                      <div className="mt-4 flex items-center justify-end text-xs text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <g clipPath="url(#clip0)">
+                              <path
+                                d="M8 3.5H11V6.5"
+                                stroke="currentColor"
+                                strokeWidth="1"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M11 3.5L6.75 7.75L4.25 5.25L1 8.5"
+                                stroke="currentColor"
+                                strokeWidth="1"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </g>
+                            <defs>
+                              <clipPath id="clip0">
+                                <rect width="12" height="12" fill="white" />
+                              </clipPath>
+                            </defs>
+                          </svg>
 
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => {}}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                            }
-                          }}
-                          className="h-9 w-9 rounded-lg border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50"
-                          aria-label="Not interested"
-                        >
-                          <ThumbsDown className="h-4 w-4 text-gray-500" />
+                          <span>{job.proposalsCount} proposals</span>
                         </div>
                       </div>
                     </div>
-
-                    <div className="mt-4 flex items-center justify-end text-xs text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 12 12"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <g clipPath="url(#clip0)">
-                            <path
-                              d="M8 3.5H11V6.5"
-                              stroke="currentColor"
-                              strokeWidth="1"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M11 3.5L6.75 7.75L4.25 5.25L1 8.5"
-                              stroke="currentColor"
-                              strokeWidth="1"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </g>
-                          <defs>
-                            <clipPath id="clip0">
-                              <rect width="12" height="12" fill="white" />
-                            </clipPath>
-                          </defs>
-                        </svg>
-
-                        <span>{job.proposalsCount} proposals</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
 
             <div className="mt-8 flex justify-center">

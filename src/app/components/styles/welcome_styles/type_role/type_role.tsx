@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { Role } from "@/app/types/auth";
 
-
 type RoleItem = {
   id: string;
   title: string;
@@ -13,9 +12,9 @@ type RoleItem = {
   icon: React.ReactNode;
 };
 
-export default function TypeRole() {
+function TypeRole() {
   const router = useRouter();
-  const { updateUserRole, user } = useAuth();
+  const { updateUserRole, user, checkAuth } = useAuth();
   // Check for pre-selected role from localStorage or query param
   const getPreselectedRole = () => {
     if (typeof window !== "undefined") {
@@ -154,9 +153,9 @@ export default function TypeRole() {
     try {
       // Check authentication
       if (!user) {
-        throw new Error(
-          "You must be logged in to continue. Please sign in again."
-        );
+        setError("You must be logged in to continue. Please sign in again.");
+        setIsLoading(false);
+        return;
       }
 
       // Map role IDs to backend role enum values
@@ -173,66 +172,37 @@ export default function TypeRole() {
       // Use AuthContext's updateUserRole method
       await updateUserRole(mappedRole);
 
-      console.log("Role updated successfully");
+      // Force reload user context after role update
+      await checkAuth();
+
+      console.log("Role updated and user context reloaded");
 
       // Check if user is already verified
       const token = localStorage.getItem("token");
-      console.log("DEBUG - Access token:", token ? "exists" : "null");
-
       if (!token) {
-        console.log("No access token found, skipping verification check");
         router.push("/page/client/verify/step-1");
         return;
       }
 
-      console.log(
-        "DEBUG - Checking verification status at http://localhost:8085/ekyc/status"
-      );
       const statusResponse = await fetch("http://localhost:8085/ekyc/status", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      console.log(
-        "DEBUG - Status response:",
-        statusResponse.status,
-        statusResponse.ok
-      );
-
       if (statusResponse.ok) {
         const statusData = await statusResponse.json();
-        console.log("DEBUG - Status data:", statusData);
-        console.log(
-          "DEBUG - verified value:",
-          statusData.verified,
-          "type:",
-          typeof statusData.verified
-        );
-
         if (statusData.verified) {
-          // User is already verified, redirect to their role-specific homepage
           const homeRoutes: Record<Role, string> = {
+            [Role.ADMIN]: "/dashboard",
             [Role.CLIENT]: "/page/client/home",
             [Role.FREELANCER]: "/page/freelancer/home",
             [Role.SELLER]: "/page/seller/home",
           };
-
-          console.log(
-            "User already verified, redirecting to homepage:",
-            homeRoutes[mappedRole]
-          );
           router.push(homeRoutes[mappedRole]);
           return;
-        } else {
-          console.log("DEBUG - User NOT verified, going to step-1");
         }
-      } else {
-        console.log("DEBUG - Status check failed, response not ok");
       }
-
-      // Navigate to verify/step-1 if not verified
-      console.log("DEBUG - Navigating to verify/step-1");
       router.push("/page/client/verify/step-1");
     } catch (err: unknown) {
       console.error("Error updating role:", err);
@@ -369,6 +339,12 @@ export default function TypeRole() {
           >
             {isLoading ? "Loading..." : "Continue"}
           </div>
+          {/* Error message */}
+          {error && (
+            <div className="w-full mb-3 text-center text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
+              {error}
+            </div>
+          )}
 
           {/* Skip */}
           <div
@@ -383,3 +359,5 @@ export default function TypeRole() {
     </div>
   );
 }
+
+export default TypeRole;

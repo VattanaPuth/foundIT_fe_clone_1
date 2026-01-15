@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import MoreMenu from "@/app/components/styles/client_styles/messages/MoreMenu";
 import type { Conversation } from "./ConversationsSidebar";
+import ProposalOfferCard from "./ProposalOfferCard";
 
 function handleKeyboardActivate(
   e: React.KeyboardEvent,
@@ -191,7 +192,8 @@ export default function ChatPanel({
                     ) : null}
                   </div>
                   <div className="text-xs text-gray-500 mt-0.5">
-                    {conversation.online ? "Online" : "Offline"} • {conversation.projectLabel}
+                    {conversation.online ? "Online" : "Offline"} •{" "}
+                    {conversation.projectLabel}
                   </div>
                 </div>
               </div>
@@ -203,7 +205,9 @@ export default function ChatPanel({
                     role="button"
                     tabIndex={0}
                     onClick={mobileBackToList}
-                    onKeyDown={(e) => handleKeyboardActivate(e, mobileBackToList)}
+                    onKeyDown={(e) =>
+                      handleKeyboardActivate(e, mobileBackToList)
+                    }
                     className="px-3 h-9 rounded-md border bg-white hover:bg-gray-50 text-sm inline-flex items-center justify-center cursor-pointer select-none"
                   >
                     Chats
@@ -215,7 +219,9 @@ export default function ChatPanel({
                   tabIndex={0}
                   onClick={() => console.log("Phone clicked")}
                   onKeyDown={(e) =>
-                    handleKeyboardActivate(e, () => console.log("Phone clicked"))
+                    handleKeyboardActivate(e, () =>
+                      console.log("Phone clicked")
+                    )
                   }
                   className="w-9 h-9 rounded-md hover:bg-gray-50 inline-flex items-center justify-center cursor-pointer select-none text-gray-600"
                   aria-label="Call"
@@ -228,7 +234,9 @@ export default function ChatPanel({
                   tabIndex={0}
                   onClick={() => console.log("Video clicked")}
                   onKeyDown={(e) =>
-                    handleKeyboardActivate(e, () => console.log("Video clicked"))
+                    handleKeyboardActivate(e, () =>
+                      console.log("Video clicked")
+                    )
                   }
                   className="w-9 h-9 rounded-md hover:bg-gray-50 inline-flex items-center justify-center cursor-pointer select-none text-gray-600"
                   aria-label="Video call"
@@ -267,11 +275,60 @@ export default function ChatPanel({
           <div className="flex-1 overflow-auto px-4 py-4 bg-white">
             <div className="space-y-4">
               {conversation.messages.map((m) => {
+                // If this is a proposal message, render the ProposalOfferCard UI
+                if (m.messageType === "proposal") {
+                  // Parse proposal data from m.text
+                  // Example: "Proposal: [coverLetter] | Rate: [rate] | Delivery: [deliveryTime] days"
+                  let jobTitle = "Proposal";
+                  let type = "Fixed Price";
+                  let budget = 0;
+                  let milestones = 1;
+                  let status = "Pending";
+                  const regex =
+                    /Proposal: (.*?) \| Rate: (.*?) \| Delivery: (.*?) days/;
+                  const match = m.text.match(regex);
+                  if (match) {
+                    jobTitle = match[1] || "Proposal";
+                    // Try to extract budget from rate string (e.g., "$300" or "300 USD")
+                    const rate = match[2] || "";
+                    const budgetMatch = rate.match(/\$?(\d+(?:\.\d+)?)/);
+                    if (budgetMatch) {
+                      budget = parseFloat(budgetMatch[1]);
+                    }
+                    // Optionally, extract type from rate string
+                    if (rate.toLowerCase().includes("hour")) {
+                      type = "Hourly";
+                    } else {
+                      type = "Fixed Price";
+                    }
+                    // Delivery days as milestones (for demo)
+                    const delivery = match[3] || "1";
+                    milestones = parseInt(delivery, 10) || 1;
+                  }
+                  return (
+                    <div key={m.id} className="flex justify-center">
+                      <ProposalOfferCard
+                        proposal={{
+                          jobTitle,
+                          type,
+                          budget,
+                          milestones,
+                          status,
+                        }}
+                        onAccept={() => {}}
+                        onDecline={() => {}}
+                      />
+                    </div>
+                  );
+                }
                 const isMe = m.from === "me";
                 return (
                   <div
                     key={m.id}
-                    className={["flex", isMe ? "justify-end" : "justify-start"].join(" ")}
+                    className={[
+                      "flex",
+                      isMe ? "justify-end" : "justify-start",
+                    ].join(" ")}
                   >
                     <div className="max-w-[78%]">
                       <div

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/app/contexts/AuthContext";
 
 import ViewFullJobHeader from "@/app/components/styles/client_styles/application/ViewFullJobHeader";
 import JobDescriptionCard from "@/app/components/styles/client_styles/application/JobDescriptionCard";
@@ -11,26 +12,124 @@ import ScreeningQuestionsCard from "@/app/components/styles/client_styles/applic
 import AttachmentsCard from "@/app/components/styles/client_styles/application/AttachmentsCard";
 import JobSidebar from "@/app/components/styles/freelancer_styles/proposal/JobSidebar";
 
-import { viewFullJobMock } from "@/app/components/styles/freelancer_styles/proposal/mockdata";
+// import { viewFullJobMock } from "@/app/components/styles/freelancer_styles/proposal/mockdata";
 import AboutClientCard from "./AboutClientCard";
 import SimilarJobsCard from "./SimilarJobsCard";
 
 export default function ViewFullJobPageShell() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const jobId = searchParams.get("id");
+  const { isAuthenticated } = useAuth();
   const [liked, setLiked] = useState(false);
+  const [job, setJob] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Early returns
+  if (!isAuthenticated) {
+    router.push("/page/sign_in");
+    return null;
+  }
+  useEffect(() => {
+    console.log("[ViewFullJobPageShell] useEffect called. jobId:", jobId);
+    if (!jobId) {
+      console.log("[ViewFullJobPageShell] No jobId in URL.");
+      return;
+    }
+    let didTimeout = false;
+    const timeout = setTimeout(() => {
+      didTimeout = true;
+      setLoading(false);
+      setError(
+        "Request timed out. Please check your network or backend server."
+      );
+      console.log("[ViewFullJobPageShell] Request timed out.");
+    }, 10000); // 10 seconds
+
+    const fetchJob = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const token = localStorage.getItem("token");
+        console.log(`[ViewFullJobPageShell] Fetching job with id: ${jobId}`);
+        const res = await fetch(
+          `http://localhost:8085/gigs/client/public/${jobId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (didTimeout) return;
+        clearTimeout(timeout);
+        if (res.status === 404) {
+          setError("Job not found");
+          setJob(null);
+          console.log("[ViewFullJobPageShell] Job not found (404)");
+        } else if (!res.ok) {
+          setError(`Failed to fetch job. Status: ${res.status}`);
+          setJob(null);
+          console.log(
+            `[ViewFullJobPageShell] Failed to fetch job. Status: ${res.status}`
+          );
+        } else {
+          const data = await res.json();
+          setJob(data);
+          console.log("[ViewFullJobPageShell] Job data fetched:", data);
+        }
+      } catch (e: any) {
+        console.error("[ViewFullJobPageShell] Fetch error:", e);
+        setError("Network or server error");
+        setJob(null);
+      } finally {
+        if (!didTimeout) {
+          clearTimeout(timeout);
+          setLoading(false);
+        }
+      }
+    };
+    fetchJob();
+    // Cleanup on unmount
+    return () => clearTimeout(timeout);
+  }, [jobId]);
+  // ...existing code...
 
   // Adjust if your HeaderNav height differs
   const stickyTopClass = "top-[72px]";
 
+  // Show loading or error before rendering job-dependent UI
+  if (loading) {
+    return (
+      <div className="text-gray-600 font-semibold p-8">
+        Loading job details...
+      </div>
+    );
+  }
+  if (error) {
+    return <div className="text-red-600 font-semibold p-8">{error}</div>;
+  }
+  if (!job) {
+    return (
+      <div className="text-red-600 font-semibold p-8">No job data found.</div>
+    );
+  }
+
+  // Map backend job data to expected props for components (adjust as needed)
+  // This mapping assumes backend returns similar fields as mockdata
   return (
     <>
       <main className="min-h-screen bg-gray-50">
         <div className="mx-auto w-full max-w-6xl px-4 py-6">
           <ViewFullJobHeader
-            title={viewFullJobMock.title}
-            badge={viewFullJobMock.badge}
-            postedByName={viewFullJobMock.postedByName}
-            postedByImageSrc={viewFullJobMock.postedByImageSrc}
+            title={job.title}
+            badge={job.badge || job.status}
+            postedByName={
+              job.postedByName || (job.client && job.client.name) || ""
+            }
+            postedByImageSrc={
+              job.postedByImageSrc ||
+              (job.client && job.client.avatarSrc) ||
+              "/images/default-avatar.png"
+            }
             liked={liked}
             onToggleLike={() => setLiked((v) => !v)}
             onBack={() => router.push("/page/application")}
@@ -43,32 +142,49 @@ export default function ViewFullJobPageShell() {
             {/* LEFT */}
             <section className="space-y-4">
               <JobDescriptionCard
-                intro={viewFullJobMock.descriptionIntro}
-                keyRequirements={viewFullJobMock.keyRequirements}
-                deliverables={viewFullJobMock.deliverables}
-                idealCandidate={viewFullJobMock.idealCandidate}
-                proposalInclude={viewFullJobMock.proposalInclude}
+                intro={job.descriptionIntro || job.description}
+                keyRequirements={job.keyRequirements || []}
+                deliverables={job.deliverables || []}
+                idealCandidate={job.idealCandidate || []}
+                proposalInclude={job.proposalInclude || []}
               />
 
-              <SkillsCard skills={viewFullJobMock.skills} />
+              <SkillsCard skills={job.skills || []} />
 
-              <ProjectDetailsCard details={viewFullJobMock.details} />
+              <ProjectDetailsCard details={job.details || []} />
 
               <ScreeningQuestionsCard
-                questions={viewFullJobMock.screeningQuestions}
+                questions={job.screeningQuestions || []}
               />
 
-              <AttachmentsCard attachments={viewFullJobMock.attachments} />
+              <AttachmentsCard attachments={job.attachments || []} />
 
-              <AboutClientCard client={viewFullJobMock.client} />
-              
-              <SimilarJobsCard jobs={viewFullJobMock.similarJobs} />
+              <AboutClientCard
+                client={job.client || {}}
+                onViewProfile={() => {
+                  // Navigate to client profile - need to implement
+                  console.log("View client profile clicked");
+                }}
+              />
+
+              <SimilarJobsCard jobs={job.similarJobs || []} />
             </section>
 
             {/* RIGHT */}
             <aside className="space-y-4 ">
               <div className={`lg:sticky ${stickyTopClass} space-y-4 pt-3`}>
-                <JobSidebar budget={viewFullJobMock.budget} />
+                <JobSidebar
+                  budget={
+                    job.budget || {
+                      amount: "-",
+                      type: "-",
+                      competitionLabel: "-",
+                      proposalsText: "-",
+                      competitionPercent: 0,
+                    }
+                  }
+                  jobId={jobId}
+                />
               </div>
             </aside>
           </div>
