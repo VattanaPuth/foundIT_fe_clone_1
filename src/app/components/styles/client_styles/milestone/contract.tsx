@@ -286,7 +286,7 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSave }: AddPaymentModalProps
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div>
@@ -1108,9 +1108,12 @@ export default function ContractPage({
   if (!isModalOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 backdrop-blur-sm">
       <div className="min-h-screen flex items-start justify-center p-0 sm:p-4 md:p-8">
-        <div className="bg-gray-50 w-full sm:max-w-5xl sm:rounded-2xl shadow-2xl sm:my-8">
+        {/* header */}
+        <div className="bg-gray-50 w-full h-screen overflow-y-auto sm:max-w-5xl sm:rounded-xl shadow-2xl sm:my-4">
+
+          {/* top */}
           <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 sticky top-0 z-10">
             <div className="flex items-center justify-between">
               <span className="text-lg sm:text-xl font-semibold text-gray-900">Hire {freelancer.name}</span>
@@ -1121,18 +1124,27 @@ export default function ContractPage({
             <StepIndicator steps={steps} currentStep={currentStep} />
           </div>
 
+          {/* content */}
           <div className="flex flex-col lg:flex-row">
             <div className="flex-1 p-4 sm:p-6">
               {currentStep === 0 && <ScopeAndTerms data={formData} onChange={handleDataChange} />}
               {currentStep === 1 && <PaymentsAndProtections data={formData} onChange={handleDataChange} paymentMethods={localPaymentMethods} onAddPaymentMethod={handleAddPaymentMethod} />}
               {currentStep === 2 && <ReviewAndSend data={formData} onChange={handleDataChange} freelancer={freelancer} />}
             </div>
-            <div className="w-full lg:w-80 xl:w-96 bg-gray-50 border-t lg:border-t-0 lg:border-l border-gray-200 p-4 sm:p-6 lg:sticky lg:top-24 lg:self-start">
-              <OfferSummary freelancer={freelancer} projectTitle={formData.projectDetails.title} contractType={formData.projectDetails.contractType} milestones={formData.milestones} hourlyTerms={formData.hourlyTerms} platformFeePercent={platformFeePercent} fundNow={fundNow} />
+            <div className="w-full lg:w-80 xl:w-96 bg-gray-50 border-t lg:border-t-0 lg:border-l border-gray-200 p-4  sm:p-6 ">
+              <OfferSummary 
+                freelancer={freelancer} 
+                projectTitle={formData.projectDetails.title} 
+                contractType={formData.projectDetails.contractType} 
+                milestones={formData.milestones} 
+                hourlyTerms={formData.hourlyTerms} 
+                platformFeePercent={platformFeePercent} 
+                fundNow={fundNow} />
             </div>
           </div>
 
-          <div className="bg-white border-t border-gray-200 px-4 sm:px-6 py-4 sticky bottom-0 z-10">
+          {/* bottom */}
+          <div className="bg-white border-t border-gray-200 px-4 sm:px-6 py-4 rounded-b-xl sticky bottom-0 z-10">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-2 order-2 sm:order-1">
                 {currentStep > 0 && (
