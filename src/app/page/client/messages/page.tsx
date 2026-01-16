@@ -149,16 +149,27 @@ export default function MessagesPage() {
           if (!prev) return undefined;
           const mappedMessages =
             messagesArr.length > 0
-              ? (messagesArr as BackendMessage[]).map((msg) => ({
-                  id: msg.id,
-                  from: (msg.senderName === localStorage.getItem("username")
-                    ? "me"
-                    : "them") as "me" | "them",
-                  text: msg.contents || msg.text || "",
-                  time: msg.time,
-                  messageType: msg.messageType,
-                  gigId: msg.gigId || null,
-                }))
+              ? (messagesArr as BackendMessage[])
+                  .slice()
+                  .sort((a, b) => {
+                    // If time is ISO string or timestamp, sort ascending
+                    if (a.time && b.time) {
+                      return (
+                        new Date(a.time).getTime() - new Date(b.time).getTime()
+                      );
+                    }
+                    return 0;
+                  })
+                  .map((msg) => ({
+                    id: msg.id,
+                    from: (msg.senderName === localStorage.getItem("username")
+                      ? "me"
+                      : "them") as "me" | "them",
+                    text: msg.contents || msg.text || "",
+                    time: msg.time,
+                    messageType: msg.messageType,
+                    gigId: msg.gigId || null,
+                  }))
               : prev.messages || [];
           return {
             ...prev,

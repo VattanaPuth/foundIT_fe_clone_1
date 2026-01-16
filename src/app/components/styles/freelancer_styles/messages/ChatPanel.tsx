@@ -97,6 +97,7 @@ function BellMutedIcon() {
       <path
         d="M9 21a3 3 0 0 0 6 0"
         stroke="currentColor"
+        YE
         strokeWidth="1.6"
         fill="none"
         strokeLinecap="round"
@@ -324,7 +325,7 @@ export default function ChatPanel(props: ChatPanelProps) {
           {/* Messages */}
           <div className="flex-1 overflow-auto px-4 py-4 bg-white">
             <div className="space-y-4">
-              {messages.map((m) => {
+              {messages.slice().map((m) => {
                 // If this is a proposal message, render the ProposalOfferCard UI
                 if (m.messageType === "proposal") {
                   // Parse proposal data from m.text

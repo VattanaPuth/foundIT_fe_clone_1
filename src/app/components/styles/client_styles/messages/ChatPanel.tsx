@@ -166,6 +166,9 @@ export default function ChatPanel(props: ChatPanelProps) {
     conversation ? conversation.messages : []
   );
 
+  // Ref for auto-scroll to bottom
+  const bottomRef = useRef<HTMLDivElement>(null);
+
   // Debug: log conversation and messages
   useEffect(() => {
     console.log("[DEBUG] ChatPanel conversation:", conversation);
@@ -217,6 +220,13 @@ export default function ChatPanel(props: ChatPanelProps) {
       );
     }
   }, [conversation]);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   return (
     <section className="bg-white border rounded-xl shadow-sm overflow-hidden h-[calc(100vh-220px)]">
@@ -337,87 +347,90 @@ export default function ChatPanel(props: ChatPanelProps) {
                 No messages yet. Say hello!
               </div>
             ) : (
-              <div className="space-y-4">
-                {messages.map((m) => {
-                  // If this is a proposal message, render the ProposalOfferCard UI
-                  if (m.messageType === "proposal") {
-                    // Parse proposal data from m.text
-                    // Example: "Proposal: [coverLetter] | Rate: [rate] | Delivery: [deliveryTime] days"
-                    let jobTitle = "Proposal";
-                    let type = "Fixed Price";
-                    let budget = 0;
-                    let milestones = 1;
-                    let status = "Pending";
-                    const regex =
-                      /Proposal: (.*?) \| Rate: (.*?) \| Delivery: (.*?) days/;
-                    const match = m.text.match(regex);
-                    if (match) {
-                      jobTitle = match[1] || "Proposal";
-                      // Try to extract budget from rate string (e.g., "$300" or "300 USD")
-                      const rate = match[2] || "";
-                      const budgetMatch = rate.match(/\$?(\d+(?:\.\d+)?)/);
-                      if (budgetMatch) {
-                        budget = parseFloat(budgetMatch[1]);
+              <>
+                <div className="space-y-4">
+                  {messages.slice().map((m) => {
+                    // If this is a proposal message, render the ProposalOfferCard UI
+                    if (m.messageType === "proposal") {
+                      // Parse proposal data from m.text
+                      // Example: "Proposal: [coverLetter] | Rate: [rate] | Delivery: [deliveryTime] days"
+                      let jobTitle = "Proposal";
+                      let type = "Fixed Price";
+                      let budget = 0;
+                      let milestones = 1;
+                      let status = "Pending";
+                      const regex =
+                        /Proposal: (.*?) \| Rate: (.*?) \| Delivery: (.*?) days/;
+                      const match = m.text?.match(regex);
+                      if (match) {
+                        jobTitle = match[1] || "Proposal";
+                        // Try to extract budget from rate string (e.g., "$300" or "300 USD")
+                        const rate = match[2] || "";
+                        const budgetMatch = rate.match(/\$?(\d+(?:\.\d+)?)/);
+                        if (budgetMatch) {
+                          budget = parseFloat(budgetMatch[1]);
+                        }
+                        // Optionally, extract type from rate string
+                        if (rate.toLowerCase().includes("hour")) {
+                          type = "Hourly";
+                        } else {
+                          type = "Fixed Price";
+                        }
+                        // Delivery days as milestones (for demo)
+                        const delivery = match[3] || "1";
+                        milestones = parseInt(delivery, 10) || 1;
                       }
-                      // Optionally, extract type from rate string
-                      if (rate.toLowerCase().includes("hour")) {
-                        type = "Hourly";
-                      } else {
-                        type = "Fixed Price";
-                      }
-                      // Delivery days as milestones (for demo)
-                      const delivery = match[3] || "1";
-                      milestones = parseInt(delivery, 10) || 1;
+                      return (
+                        <div key={m.id} className="flex justify-center">
+                          <ProposalOfferCard
+                            proposal={{
+                              jobTitle,
+                              type,
+                              budget,
+                              milestones,
+                              status,
+                            }}
+                            onAccept={() => {}}
+                            onDecline={() => {}}
+                          />
+                        </div>
+                      );
                     }
+                    const isMe = m.from === "me";
                     return (
-                      <div key={m.id} className="flex justify-center">
-                        <ProposalOfferCard
-                          proposal={{
-                            jobTitle,
-                            type,
-                            budget,
-                            milestones,
-                            status,
-                          }}
-                          onAccept={() => {}}
-                          onDecline={() => {}}
-                        />
+                      <div
+                        key={m.id}
+                        className={[
+                          "flex",
+                          isMe ? "justify-end" : "justify-start",
+                        ].join(" ")}
+                      >
+                        <div className="max-w-[78%]">
+                          <div
+                            className={[
+                              "px-4 py-3 rounded-2xl text-sm leading-5 whitespace-pre-line",
+                              isMe
+                                ? "bg-green-600 text-white rounded-tr-md"
+                                : "bg-gray-100 text-gray-800 rounded-tl-md",
+                            ].join(" ")}
+                          >
+                            {m.text}
+                          </div>
+                          <div
+                            className={[
+                              "text-xs text-gray-400 mt-1",
+                              isMe ? "text-right" : "text-left",
+                            ].join(" ")}
+                          >
+                            {m.time}
+                          </div>
+                        </div>
                       </div>
                     );
-                  }
-                  const isMe = m.from === "me";
-                  return (
-                    <div
-                      key={m.id}
-                      className={[
-                        "flex",
-                        isMe ? "justify-end" : "justify-start",
-                      ].join(" ")}
-                    >
-                      <div className="max-w-[78%]">
-                        <div
-                          className={[
-                            "px-4 py-3 rounded-2xl text-sm leading-5 whitespace-pre-line",
-                            isMe
-                              ? "bg-green-600 text-white rounded-tr-md"
-                              : "bg-gray-100 text-gray-800 rounded-tl-md",
-                          ].join(" ")}
-                        >
-                          {m.text}
-                        </div>
-                        <div
-                          className={[
-                            "text-xs text-gray-400 mt-1",
-                            isMe ? "text-right" : "text-left",
-                          ].join(" ")}
-                        >
-                          {m.time}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                  })}
+                </div>
+                <div ref={bottomRef} />
+              </>
             )}
           </div>
 

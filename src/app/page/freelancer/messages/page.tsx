@@ -282,9 +282,20 @@ export default function MessagesPage() {
         const data = await res.json();
         setActive((prev) => {
           if (!prev) return undefined;
+          // Sort messages by time ascending (oldest to newest)
+          const sorted = Array.isArray(data)
+            ? data.slice().sort((a, b) => {
+                if (a.time && b.time) {
+                  return (
+                    new Date(a.time).getTime() - new Date(b.time).getTime()
+                  );
+                }
+                return 0;
+              })
+            : [];
           return {
             ...prev,
-            messages: data.map((msg: any) => ({
+            messages: sorted.map((msg: any) => ({
               id: msg.id,
               from:
                 msg.senderName === localStorage.getItem("username")
