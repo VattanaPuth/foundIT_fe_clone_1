@@ -89,6 +89,7 @@ export default function MessagesPage() {
 
           // The other user is the one who is NOT me
           const otherUserId = senderId === myUserId ? recipientId : senderId;
+          // Always set otherUserName to client's name for freelancer chat
 
           setConversations((prev) => {
             return prev.map((conv) => {
@@ -167,38 +168,32 @@ export default function MessagesPage() {
         const data = await res.json();
 
         const grouped: { [key: string]: ConversationWithId } = {};
+        
         data.forEach((msg: any) => {
-          const myUsername = localStorage.getItem("username");
+          const myUsername = user?.username || localStorage.getItem("username");
           const myUserId = user?.id ? String(user.id) : null;
-          const isSender = msg.senderName === myUsername;
+          
+          // Determine if current user is the sender
+          const isSender = msg.senderName === myUsername || String(msg.senderId) === myUserId;
+          
+          // Extract the other user's ID
           const otherUserId = isSender
-            ? typeof msg.recipientId === "object" &&
-              msg.recipientId !== null &&
-              "id" in msg.recipientId
+            ? typeof msg.recipientId === "object" && msg.recipientId !== null && "id" in msg.recipientId
               ? String(msg.recipientId.id)
               : String(msg.recipientId)
-            : typeof msg.senderId === "object" &&
-              msg.senderId !== null &&
-              "id" in msg.senderId
+            : typeof msg.senderId === "object" && msg.senderId !== null && "id" in msg.senderId
             ? String(msg.senderId.id)
             : String(msg.senderId);
 
           if (myUserId && otherUserId === myUserId) return;
 
+          // For FREELANCER page: otherUserName should be the CLIENT's name
+          // If I'm the sender, the other person is the recipient (client)
+          // If I'm the recipient, the other person is the sender (client)
           const otherUserName = isSender ? msg.recipientName : msg.senderName;
 
           // Clean up email domain from names
-          const cleanName = otherUserName
-            ? otherUserName.replace(/@gmail\.com$/i, "")
-            : "";
-
-          let otherRole: "Client" | "Freelancer" = "Client";
-          if (isSender && msg.recipientRole) {
-            otherRole =
-              msg.recipientRole === "CLIENT" ? "Client" : "Freelancer";
-          } else if (msg.senderRole) {
-            otherRole = msg.senderRole === "CLIENT" ? "Client" : "Freelancer";
-          }
+          const cleanName = otherUserName ? otherUserName.replace(/@gmail\.com$/i, "") : "";
 
           if (!grouped[otherUserId]) {
             grouped[otherUserId] = {
@@ -207,20 +202,20 @@ export default function MessagesPage() {
               name: cleanName,
               otherUserId,
               otherUserName: cleanName,
-              roleTag: otherRole,
+              roleTag: "Client", // Freelancer always sees "Client"
               timeLabel: "",
-              preview: msg.contents,
+              preview: msg.contents || "",
               online: false,
               projectLabel: "",
               muted: false,
               messages: [],
             };
           }
-          grouped[otherUserId].roleTag = otherRole;
+          
           grouped[otherUserId].messages.push({
             id: msg.id,
             from: isSender ? "me" : "them",
-            text: msg.contents,
+            text: msg.contents || "",
             time: msg.time,
             messageType: msg.messageType,
           });
@@ -228,10 +223,10 @@ export default function MessagesPage() {
 
         const convArr = Object.values(grouped);
         setConversations(convArr);
+        
         if (convArr.length > 0 && !activeId) {
           const lastActiveId = localStorage.getItem("lastActiveChatId");
-          const found =
-            lastActiveId && convArr.find((c) => c.otherUserId === lastActiveId);
+          const found = lastActiveId && convArr.find((c) => c.otherUserId === lastActiveId);
           if (found) {
             setActiveId(lastActiveId);
           } else {
@@ -368,101 +363,114 @@ export default function MessagesPage() {
     );
   }
 
-  function deleteActiveConversation() {
-    if (!active) return;
+function deleteActiveConversation() {
+  if (!active) return;
 
-    const idToDelete = active.id;
-    setConversations((prev) => prev.filter((c) => c.id !== idToDelete));
-    setDeleteOpen(false);
+  const idToDelete = active.id;
+  setConversations((prev) => prev.filter((c) => c.id !== idToDelete));
+  setDeleteOpen(false);
 
-    setTimeout(() => {
-      setConversations((curr) => {
-        const next = curr[0];
-        setActiveId(next ? String(next.otherUserId) : "");
-        setMobileView("list");
-        return curr;
+  // If you need this setTimeout logic, it should reference defined variables
+  // Currently 'message' and 'otherUserId' are undefined
+  /*
+  setTimeout(() => {
+    setConversations((prev) => {
+      return prev.map((conv) => {
+        if (String(conv.otherUserId) === otherUserId) {
+          return {
+            ...conv,
+            name: message.senderName === user?.username ? message.recipientName : message.senderName,
+            otherUserName: message.senderName === user?.username ? message.recipientName : message.senderName,
+            roleTag: "Client",
+            preview: message.contents || "",
+            timeLabel: "Just now",
+          };
+        }
+        return conv;
       });
-    }, 0);
+    });
+  }, 0);
+  */
+}
+
+// This appears to be a separate send message function
+function sendMessage(text: string) {
+  if (!active || !user) return;
+
+  // Check if WebSocket is connected
+  if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+    console.error("WebSocket is not connected");
+    alert("Connection lost. Please refresh the page.");
+    return;
   }
 
-  function sendMessage() {
-    const text = chatText.trim();
-    if (!text || !active || !user) return;
+  const myUserId =
+    typeof user.id === "object" && user.id !== null
+      ? (user.id as any).id || (user.id as any)._id || JSON.stringify(user.id)
+      : String(user.id);
 
-    // Check if WebSocket is connected
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-      console.error("WebSocket is not connected");
-      alert("Connection lost. Please refresh the page.");
-      return;
-    }
+  const recipientId =
+    typeof active.otherUserId === "object" && active.otherUserId !== null
+      ? (active.otherUserId as any).id ||
+        (active.otherUserId as any)._id ||
+        JSON.stringify(active.otherUserId)
+      : String(active.otherUserId);
 
-    const myUserId =
-      typeof user.id === "object" && user.id !== null
-        ? (user.id as any).id || (user.id as any)._id || JSON.stringify(user.id)
-        : String(user.id);
+  // Optimistically update UI
+  const tempId = `me-${Date.now()}`;
+  const newMessage = {
+    id: tempId,
+    from: "me" as const,
+    text,
+    time: "Just now",
+    messageType: "text",
+  };
 
-    const recipientId =
-      typeof active.otherUserId === "object" && active.otherUserId !== null
-        ? (active.otherUserId as any).id ||
-          (active.otherUserId as any)._id ||
-          JSON.stringify(active.otherUserId)
-        : String(active.otherUserId);
+  setConversations((prev) =>
+    prev.map((c) =>
+      c.otherUserId === active.otherUserId
+        ? {
+            ...c,
+            messages: [...c.messages, newMessage],
+            preview: text,
+            timeLabel: "Just now",
+          }
+        : c
+    )
+  );
 
-    // Optimistically update UI
-    const tempId = `me-${Date.now()}`;
-    const newMessage = {
-      id: tempId,
-      from: "me" as const,
-      text,
-      time: "Just now",
-      messageType: "text",
+  setActive((prev) => {
+    if (!prev) return prev;
+    return {
+      ...prev,
+      messages: [...prev.messages, newMessage],
+    };
+  });
+
+  setChatText("");
+
+  // Send via WebSocket
+  try {
+    const messagePayload = {
+      type: "MESSAGE",
+      payload: {
+        recipientId,
+        recipientName: active.otherUserName,
+        senderId: myUserId,
+        senderName: user.username,
+        contents: text,
+        messageType: "text",
+        gigId: (active as any).gigId || null,
+      },
     };
 
-    setConversations((prev) =>
-      prev.map((c) =>
-        c.otherUserId === active.otherUserId
-          ? {
-              ...c,
-              messages: [...c.messages, newMessage],
-              preview: text,
-              timeLabel: "Just now",
-            }
-          : c
-      )
-    );
-
-    setActive((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        messages: [...prev.messages, newMessage],
-      };
-    });
-
-    setChatText("");
-
-    // Send via WebSocket
-    try {
-      const messagePayload = {
-        type: "MESSAGE",
-        payload: {
-          recipientId,
-          recipientName: active.otherUserName,
-          senderId: myUserId,
-          senderName: user.username,
-          contents: text,
-          messageType: "text",
-          gigId: (active as any).gigId || null,
-        },
-      };
-
-      console.log("Sending message:", messagePayload);
-      wsRef.current.send(JSON.stringify(messagePayload));
-    } catch (error) {
-      console.error("Failed to send message:", error);
-      alert("Failed to send message. Please try again.");
-    }
+    console.log("Sending message:", messagePayload);
+    wsRef.current.send(JSON.stringify(messagePayload));
+  } catch (error) {
+    console.error("Failed to send message:", error);
+    alert("Failed to send message. Please try again.");
   }
+}
 
   return (
     <>
