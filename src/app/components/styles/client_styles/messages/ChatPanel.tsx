@@ -6,6 +6,9 @@ import ws from "@/app/lib/ws";
 import MoreMenu from "@/app/components/styles/client_styles/messages/MoreMenu";
 import type { Conversation } from "./ConversationsSidebar";
 import ProposalOfferCard from "./ProposalOfferCard";
+import { useRouter } from "next/navigation";
+
+
 
 function handleKeyboardActivate(
   e: React.KeyboardEvent,
@@ -146,6 +149,7 @@ interface ChatPanelProps {
 }
 
 export default function ChatPanel(props: ChatPanelProps) {
+  const router = useRouter();
   const {
     conversation,
     visible,
@@ -383,10 +387,30 @@ export default function ChatPanel(props: ChatPanelProps) {
                               type,
                               budget,
                               milestones,
-                              status,
+                              status: m.status || status,
                             }}
-                            onAccept={() => {}}
-                            onDecline={() => {}}
+                            
+                            declined={(m.status || status) === "Declined"}
+                            accepted={(m.status || status) === "Accepted"}
+                            
+                            onAccept={((m.status || status) === "Accepted" || (m.status || status) === "Accepted") ? undefined : () => {
+                              setMessages((prevMsgs) =>
+                                prevMsgs.map((msg) =>
+                                  msg.id === m.id
+                                    ? { ...msg, status: "Accepted" }
+                                    : msg
+                                )
+                              );
+                            }}
+                            onDecline={((m.status || status) === "Declined" || (m.status || status) === "Accepted") ? undefined : () => {
+                              setMessages((prevMsgs) =>
+                                prevMsgs.map((msg) =>
+                                  msg.id === m.id
+                                    ? { ...msg, status: "Declined" }
+                                    : msg
+                                )
+                              );
+                            }}
                           />
                         </div>
                       );

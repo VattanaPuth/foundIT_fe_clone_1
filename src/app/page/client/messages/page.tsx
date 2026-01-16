@@ -83,7 +83,7 @@ export default function MessagesPage() {
           // For CLIENT page: otherUserName should be the FREELANCER's name
           // If I'm the sender, the other person is the recipient (freelancer)
           // If I'm the recipient, the other person is the sender (freelancer)
-          let otherUserName = isSender ? msg.recipientName : msg.senderName;
+          let otherUserName = isSender ? msg.senderName : msg.recipientName;
           
           // Clean email domain
           if (typeof otherUserName === "string" && otherUserName.includes("@gmail.com")) {
