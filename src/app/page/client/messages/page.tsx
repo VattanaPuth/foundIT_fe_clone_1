@@ -54,7 +54,8 @@ export default function MessagesPage() {
         // Group by other userId, store both userId and username
         const grouped: { [key: string]: ConversationWithId } = {};
         data.forEach((msg: Message) => {
-          const myUsername = localStorage.getItem("username");
+          // Prefer username from user object, fallback to localStorage
+          const myUsername = user?.username || localStorage.getItem("username");
           const myUserId = user?.id ? String(user.id) : null;
           const isSender = msg.senderName === myUsername;
           const rawRecipientId = msg.recipientId;
@@ -71,9 +72,26 @@ export default function MessagesPage() {
             ? String((rawSenderId as { id: string | number }).id)
             : String(rawSenderId);
           if (myUserId && otherUserId === myUserId) return;
-          const otherUserName = isSender
-            ? msg.recipientName ?? ""
-            : msg.senderName ?? "";
+          // Always show the freelancer's username as the other user in client chat
+          let otherUserName = isSender
+            ? msg.recipientRole === "FREELANCER"
+              ? msg.recipientUsername ||
+                msg.recipientName ||
+                msg.recipientEmail ||
+                ""
+              : msg.senderUsername || msg.senderName || msg.senderEmail || ""
+            : msg.senderRole === "FREELANCER"
+            ? msg.senderUsername || msg.senderName || msg.senderEmail || ""
+            : msg.recipientUsername ||
+              msg.recipientName ||
+              msg.recipientEmail ||
+              "";
+          if (
+            typeof otherUserName === "string" &&
+            otherUserName.includes("@gmail.com")
+          ) {
+            otherUserName = otherUserName.replace(/@gmail\.com$/i, "");
+          }
           if (!grouped[otherUserId]) {
             grouped[otherUserId] = {
               ...msg,
