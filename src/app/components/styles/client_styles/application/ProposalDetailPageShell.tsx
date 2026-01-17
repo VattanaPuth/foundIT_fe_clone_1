@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import ProposalTopRow from "@/app/components/styles/client_styles/application/ProposalTopRow";
 import ProposalCandidateCard from "@/app/components/styles/client_styles/application/ProposalCandidateCard";
@@ -8,16 +9,11 @@ import ProposalSidebar from "@/app/components/styles/client_styles/application/P
 
 import { proposalMock } from "@/app/components/styles/client_styles/application/mockdata";
 import {
-  IconHired,
   IconPaperclip,
   IconDownload,
   IconEye,
   IconStar,
-  IconShare,
-  IconSend,
-  IconMore,
   IconSee,
-  IconMessage,
   IconShield,
 } from "./icons";
 import ClientNavHeader from "@/app/components/styles/global_styles/client/header";
@@ -79,7 +75,7 @@ export default function ProposalDetailPageShell() {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
-          }
+          },
         );
 
         if (response.ok) {
@@ -119,7 +115,7 @@ export default function ProposalDetailPageShell() {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.ok) {
@@ -139,8 +135,8 @@ export default function ProposalDetailPageShell() {
         // Pass freelancer data via query param
         router.push(
           `/page/client/milestone?freelancer=${encodeURIComponent(
-            JSON.stringify(freelancerData)
-          )}`
+            JSON.stringify(freelancerData),
+          )}`,
         );
       } else {
         alert("Failed to accept proposal");
@@ -163,7 +159,7 @@ export default function ProposalDetailPageShell() {
 
       const response = await fetch(
         `http://localhost:8085/proposals/${proposalId}/reject?clientId=${clientId}&reason=${encodeURIComponent(
-          reason
+          reason,
         )}`,
         {
           method: "POST",
@@ -171,7 +167,7 @@ export default function ProposalDetailPageShell() {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.ok) {
@@ -237,7 +233,7 @@ export default function ProposalDetailPageShell() {
                   : "No reviews yet",
                 statsRight: `${proposalData.currency}${proposalData.proposedBudget} • ${proposalData.deliveryDays} days`,
                 submitted: new Date(
-                  proposalData.createdAt
+                  proposalData.createdAt,
                 ).toLocaleDateString(),
                 lastViewed: "Just now",
               }}
@@ -265,7 +261,7 @@ export default function ProposalDetailPageShell() {
                 <div className="space-y-3">
                   {proposalData.milestones &&
                   proposalData.milestones.length > 0 ? (
-                    proposalData.milestones.map((m, idx) => (
+                    proposalData.milestones.map((m) => (
                       <div
                         key={m.id}
                         className="rounded-xl border border-gray-200 bg-white p-3"
@@ -413,10 +409,12 @@ export default function ProposalDetailPageShell() {
                       className="rounded-xl border border-gray-200 bg-white overflow-hidden"
                     >
                       <div className="h-28 bg-gray-100">
-                        <img
+                        <Image
                           src="/placeholder-sample.jpg"
-                          alt=""
+                          alt="Work sample"
                           className="h-full w-full object-cover"
+                          width={400}
+                          height={112}
                         />
                       </div>
                       <div className="p-3">
@@ -582,8 +580,8 @@ function ActionButton({
     tone === "green"
       ? `${base} bg-green-500 hover:bg-green-600 text-white`
       : tone === "danger"
-      ? `${base} border border-red-200 bg-white text-red-600 hover:bg-red-50`
-      : `${base} border border-gray-200 bg-white text-gray-700 hover:bg-gray-50`;
+        ? `${base} border border-red-200 bg-white text-red-600 hover:bg-red-50`
+        : `${base} border border-gray-200 bg-white text-gray-700 hover:bg-gray-50`;
 
   return (
     <div

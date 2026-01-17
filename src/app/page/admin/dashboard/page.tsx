@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import AdminSidebar from "@/app/components/styles/admin_styles/Sidebar";
 import AdminTopbar from "@/app/components/styles/admin_styles/Topbar";
 import { ProtectedRoute } from "@/app/components/auth/ProtectedRoute";
+import { Role } from "@/app/types/auth";
 
 import {
   adminNavItems,
@@ -66,7 +67,7 @@ export default function AdminDashboardPage() {
   }, [sidebarOpen]);
 
   return (
-    <ProtectedRoute requiredRole="ADMIN">
+    <ProtectedRoute requiredRole={Role.ADMIN}>
       <div className="h-screen bg-gray-50">
         <AdminTopbar />
 

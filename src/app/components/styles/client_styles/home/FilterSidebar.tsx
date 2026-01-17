@@ -1,5 +1,4 @@
 import React from "react";
-import { ChevronDown } from 'lucide-react'; // Added for visual clarity on summary
 import { categories, locations } from "./data";
 
 interface FilterSidebarProps {
@@ -21,17 +20,27 @@ interface FilterSidebarProps {
 }
 
 export default function FilterSidebar({
-  hourlyMin, setHourlyMin, selectedCategory, setSelectedCategory,
-  selectedExperience, toggleExperience, selectedLocations, toggleLocation,
-  verifiedOnly, setVerifiedOnly, setLastActive, minRating, setMinRating,
-  minWorkCount, setMinWorkCount
+  hourlyMin,
+  setHourlyMin,
+  selectedCategory,
+  setSelectedCategory,
+  selectedExperience,
+  toggleExperience,
+  selectedLocations,
+  toggleLocation,
+  verifiedOnly,
+  setVerifiedOnly,
+  setLastActive,
+  minRating,
+  setMinRating,
+  minWorkCount,
+  setMinWorkCount,
 }: FilterSidebarProps) {
-
   const handleClearAll = () => {
     setHourlyMin(0);
     setSelectedCategory(null);
-    selectedExperience.forEach(exp => toggleExperience(exp)); // remove all
-    selectedLocations.forEach(loc => toggleLocation(loc));   // remove all
+    selectedExperience.forEach((exp) => toggleExperience(exp)); // remove all
+    selectedLocations.forEach((loc) => toggleLocation(loc)); // remove all
     setVerifiedOnly(false);
     setLastActive(null);
     setMinRating(null);
@@ -43,52 +52,52 @@ export default function FilterSidebar({
     // ADDED: h-full to fill the parent's calculated height.
     // ADDED: overflow-y-auto to enable scrolling when content overflows the fixed height.
     // ADDED: hover:overflow-y-scroll for a potential UX improvement (scrollbar only visible on hover).
-    <div className="h-full overflow-y-auto hover:overflow-y-scroll pr-4 pb-37" >
-      <div className="space-y-8 pb-1"> {/* Added pb-4 for button spacing at the bottom */}
+    <div className="h-full overflow-y-auto hover:overflow-y-scroll pr-4 pb-37">
+      <div className="space-y-8 pb-1">
+        {" "}
+        {/* Added pb-4 for button spacing at the bottom */}
         <h5>Filters</h5>
         <hr className="border-gray-200 my-4" />
         {/* Category Filter */}
         <details open>
           <summary className="font-semibold cursor-pointer flex justify-between items-center text-250">
-            Category 
+            Category
           </summary>
           <div className="mt-1.5 space-y-2 space-x-5  ">
-            {categories.map(cat => (
+            {categories.map((cat) => (
               <div key={cat} className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={selectedCategory === cat}
-                  onChange={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+                  onChange={() =>
+                    setSelectedCategory(selectedCategory === cat ? null : cat)
+                  }
                   className="w-4 h-4 accent-green-600 text-green-600 rounded focus:ring-green-500 border-gray-300"
                 />
-                <span className="text-sm " >{cat}</span>
+                <span className="text-sm ">{cat}</span>
               </div>
             ))}
           </div>
         </details>
         <hr className="border-gray-200 my-4" />
-
         {/* Skills Filter */}
         <details open>
           <summary className="font-semibold cursor-pointer flex justify-between items-center text-250">
-            Skills 
+            Skills
           </summary>
           <div className="mt-1.5">
             <input
               type="text"
-              placeholder="Type to search skills.. " 
+              placeholder="Type to search skills.. "
               className="w-full p-2 border rounded-lg focus:ring-green-500 focus:border-green-500 text-sm placeholder:text-sm"
             />
-            
-            
           </div>
         </details>
         <hr className="border-gray-200 my-4" />
-
         {/* Hourly Rate Filter */}
         <details open>
           <summary className="font-semibold cursor-pointer flex justify-between items-center text-250">
-            Hourly Rate 
+            Hourly Rate
           </summary>
           <div className="mt-1.5">
             <div className="flex justify-between text-sm mb-2">
@@ -106,14 +115,13 @@ export default function FilterSidebar({
           </div>
         </details>
         <hr className="border-gray-200 my-4" />
-
         {/* Experience Level Filter */}
         <details open>
           <summary className="font-semibold cursor-pointer flex justify-between items-center text-250">
-            Experience Level 
+            Experience Level
           </summary>
           <div className="mt-1.5 space-y-2 cursor-pointer">
-            {['Entry', 'Intermediate', 'Expert'].map(exp => (
+            {["Entry", "Intermediate", "Expert"].map((exp) => (
               <div key={exp} className="flex items-center gap-3 w-full ">
                 <input
                   type="checkbox"
@@ -127,15 +135,17 @@ export default function FilterSidebar({
           </div>
         </details>
         <hr className="border-gray-200 my-4" />
-
         {/* Location Filter */}
         <details open>
           <summary className="font-semibold cursor-pointer flex justify-between items-center text-250">
-            Location 
+            Location
           </summary>
           <div className="mt-1.5 space-y-2">
-            {locations.map(loc => (
-              <div key={loc} className="flex items-center gap-3 cursor-pointer mr-4">
+            {locations.map((loc) => (
+              <div
+                key={loc}
+                className="flex items-center gap-3 cursor-pointer mr-4"
+              >
                 <input
                   type="checkbox"
                   checked={selectedLocations.includes(loc)}
@@ -148,11 +158,10 @@ export default function FilterSidebar({
           </div>
         </details>
         <hr className="border-gray-200 my-4" />
-
         {/* Verified Filter */}
         <details open>
           <summary className="font-semibold cursor-pointer flex justify-between items-center text-250">
-            Badges 
+            Badges
           </summary>
           <div className="mt-1.5 space-y-2">
             <div className="flex items-center gap-3 cursor-pointer">
@@ -167,37 +176,50 @@ export default function FilterSidebar({
           </div>
         </details>
         <hr className="border-gray-200 my-4" />
-
-        {/* Last Active Filter  need to change it to checkbox*/ } 
+        {/* Last Active Filter  need to change it to checkbox*/}
         <details open>
           <summary className="font-semibold cursor-pointer flex justify-between items-center text-250">
-            Last Active 
+            Last Active
           </summary>
           <div className="mt-1.5 space-y-2">
             <div className="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="lastActive" onChange={() => setLastActive(7)} className="w-4 h-4 accent-green-600 rounded-full focus:ring-green-500 border-gray-300" />
+              <input
+                type="radio"
+                name="lastActive"
+                onChange={() => setLastActive(7)}
+                className="w-4 h-4 accent-green-600 rounded-full focus:ring-green-500 border-gray-300"
+              />
               <span className="text-sm">7 days</span>
             </div>
             <div className="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="lastActive" onChange={() => setLastActive(30)} className="w-4 h-4 accent-green-600 rounded-full focus:ring-green-500 border-gray-300" />
+              <input
+                type="radio"
+                name="lastActive"
+                onChange={() => setLastActive(30)}
+                className="w-4 h-4 accent-green-600 rounded-full focus:ring-green-500 border-gray-300"
+              />
               <span className="text-sm">30 days</span>
             </div>
           </div>
         </details>
         <hr className="border-gray-200 my-4" />
-
         {/* Minimum Rating Filter */}
         <details open>
           <summary className="font-semibold cursor-pointer flex justify-between items-center text-250">
-            Minimum Rating 
+            Minimum Rating
           </summary>
           <div className="mt-1.5 space-y-2">
-            {[4, 4.5].map(rating => (
-              <div key={rating} className="flex items-center gap-3 cursor-pointer">
+            {[4, 4.5].map((rating) => (
+              <div
+                key={rating}
+                className="flex items-center gap-3 cursor-pointer"
+              >
                 <input
                   type="checkbox"
                   checked={minRating === rating}
-                  onChange={() => setMinRating(minRating === rating ? null : rating)}
+                  onChange={() =>
+                    setMinRating(minRating === rating ? null : rating)
+                  }
                   className="w-4 h-4 accent-green-600 text-green-600 rounded focus:ring-green-500 border-gray-300"
                 />
                 <span className=" text-sm">{rating}+</span>
@@ -206,39 +228,40 @@ export default function FilterSidebar({
           </div>
         </details>
         <hr className="border-gray-200 my-4" />
-
         {/* Minimum Work Count Filter */}
         <details open>
           <summary className="font-semibold cursor-pointer flex justify-between items-center text-250 ">
-            Job Count 
+            Job Count
           </summary>
           <div className="mt-1.5 space-y-2 mb-4">
             <div className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                checked={minWorkCount}  
+                checked={minWorkCount}
                 onChange={() => setMinWorkCount(!minWorkCount)}
                 className="w-4 h-4 accent-green-600 text-green-600 rounded focus:ring-green-500 border-gray-300"
-                
               />
               <span className="text-sm">{" >=10 completed jobs"}</span>
             </div>
           </div>
         </details>
-        
-      
+      </div>
 
-      </div>
-      
       {/* Action Buttons are outside the main scrollable content, but still inside the overall fixed container */}
-      
+
       <div className="h-auto">
-      <div className="flex gap-3  pt-4 border-t border-b  bg-gray-50 sticky bottom-4 p-2">
-        <p onClick={handleClearAll} className="flex items-center px-3 py-1 border rounded-lg w-auto hover:bg-gray-100 transition cursor-pointer ">Clear all</p>
-        <p className="flex items-center px-3 py-1 w-auto bg-green-600 text-white rounded-lg hover:bg-green-700 transition cursor-pointer">Apply</p>
+        <div className="flex gap-3  pt-4 border-t border-b  bg-gray-50 sticky bottom-4 p-2">
+          <p
+            onClick={handleClearAll}
+            className="flex items-center px-3 py-1 border rounded-lg w-auto hover:bg-gray-100 transition cursor-pointer "
+          >
+            Clear all
+          </p>
+          <p className="flex items-center px-3 py-1 w-auto bg-green-600 text-white rounded-lg hover:bg-green-700 transition cursor-pointer">
+            Apply
+          </p>
+        </div>
       </div>
     </div>
-    </div>
-    
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { IconStar } from "@/app/components/styles/admin_styles/Icon";
+import Image from "next/image";
 
 export type ProjectItem = {
   id: string;
@@ -18,7 +19,7 @@ export type ProjectItem = {
 
 function handleKeyboardActivate(
   e: React.KeyboardEvent,
-  onActivate: () => void
+  onActivate: () => void,
 ) {
   if (e.key === "Enter" || e.key === " ") {
     e.preventDefault();
@@ -47,12 +48,12 @@ function Badge({ text }: { text: string }) {
     lower === "featured"
       ? "bg-purple-100 text-purple-700"
       : lower === "trending"
-      ? "bg-red-100 text-red-700"
-      : lower === "bestseller"
-      ? "bg-orange-100 text-orange-700"
-      : lower === "new"
-      ? "bg-yellow-100 text-yellow-800"
-      : "bg-gray-100 text-gray-700";
+        ? "bg-red-100 text-red-700"
+        : lower === "bestseller"
+          ? "bg-orange-100 text-orange-700"
+          : lower === "new"
+            ? "bg-yellow-100 text-yellow-800"
+            : "bg-gray-100 text-gray-700";
 
   return (
     <span className={`text-xs px-2 py-0.5 rounded-full ${style}`}>{text}</span>
@@ -62,8 +63,7 @@ function Badge({ text }: { text: string }) {
 function AvatarDot({ name }: { name: string }) {
   return (
     <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-100 text-gray-700 flex items-center justify-center">
-      <img src="/images/sellerpf.png" alt="sellerpf" />
-      
+      <Image src="/images/sellerpf.png" alt={name} width={24} height={24} />
     </div>
   );
 }
@@ -75,22 +75,15 @@ export default function ProjectCard({
   item: ProjectItem;
   onOpen: (id: string) => void;
 }) {
-  const tone =
-    item.coverTone === "orange"
-      ? "bg-orange-200"
-      : item.coverTone === "dark"
-      ? "bg-gray-900"
-      : item.coverTone === "brown"
-      ? "bg-amber-900"
-      : "bg-gray-100";
-
   return (
     <div className="bg-white border rounded-lg shadow-sm hover:shadow-md transition overflow-hidden">
       <div className="relative h-58 bg-gray-100">
-        <img
+        <Image
           src={item.imageSrc}
           alt={item.title}
           className="h-full w-full object-cover"
+          width={400}
+          height={232}
         />
         <div className="absolute top-2 left-2 flex gap-2">
           {(item.badges ?? []).map((b) => (
@@ -130,7 +123,9 @@ export default function ProjectCard({
         <div className="text-xs text-gray-500 mt-1">{item.subtitle}</div>
 
         <div className="flex items-center gap-2 mt-2 text-xs text-gray-600">
-          <span className="text-yellow-500"><IconStar/></span>
+          <span className="text-yellow-500">
+            <IconStar />
+          </span>
           <span className="font-medium text-gray-800">{item.rating}</span>
           <span className="text-gray-400">({item.reviews})</span>
         </div>

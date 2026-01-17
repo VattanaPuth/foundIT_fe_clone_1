@@ -1,8 +1,10 @@
 // File: components/setting_right_side7_com1.tsx
 import React, { useState } from "react";
 
+type PasswordStrengthLabel = "Very Weak" | "Weak" | "Medium" | "Strong" | "Very Strong";
+
 // Function to determine password strength
-const passwordStrengthMeter = (password: string) => {
+const passwordStrengthMeter = (password: string): { strengthLabel: PasswordStrengthLabel; percentage: number } => {
   const lengthCriteria = password.length >= 8; // Minimum length requirement
   const hasNumber = /[0-9]/.test(password); // Check if it has numbers
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password); // Check for special characters
@@ -17,7 +19,7 @@ const passwordStrengthMeter = (password: string) => {
 
   // Determine strength level and percentage based on the number of fulfilled criteria
   const percentage = (strength / 4) * 100; // Max 4 criteria, so max percentage is 100%
-  let strengthLabel = "Very Weak";
+  let strengthLabel: PasswordStrengthLabel = "Very Weak";
 
   if (strength === 1) {
     strengthLabel = "Weak";
@@ -36,7 +38,7 @@ const SettingRightSide7Com1: React.FC = () => {
   const [currentPassword, setCurrentPassword] = useState(""); // Keep it blank by default
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordStrengthLabel, setPasswordStrengthLabel] = useState<string>("Very Weak");
+  const [passwordStrengthLabel, setPasswordStrengthLabel] = useState<PasswordStrengthLabel>("Very Weak");
   const [strengthPercentage, setStrengthPercentage] = useState<number>(0); // Default to 0%
 
   const handleNewPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,7 +67,7 @@ const SettingRightSide7Com1: React.FC = () => {
     // }
   };
 
-  const passwordStrengthClass = {
+  const passwordStrengthClass: Record<PasswordStrengthLabel, string> = {
     "Very Weak": "bg-gray-200", // Default is neutral (gray)
     Weak: "bg-red-500",
     Medium: "bg-yellow-500",

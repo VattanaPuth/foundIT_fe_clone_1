@@ -7,6 +7,7 @@ export type Message = {
   from: "me" | "them";
   text: string;
   time: string;
+  messageType?: string;
 };
 
 export type Conversation = {
@@ -208,4 +209,3 @@ export default function ConversationsSidebar({
     </section>
   );
 }
-  

@@ -7,6 +7,11 @@ import MoreMenu from "@/app/components/styles/client_styles/messages/MoreMenu";
 import type { Conversation } from "./ConversationsSidebar";
 import ProposalOfferCard from "./ProposalOfferCard";
 
+interface WSEvent {
+  type: string;
+  payload: any;
+}
+
 function handleKeyboardActivate(
   e: React.KeyboardEvent,
   onActivate: () => void
@@ -97,7 +102,6 @@ function BellMutedIcon() {
       <path
         d="M9 21a3 3 0 0 0 6 0"
         stroke="currentColor"
-        YE
         strokeWidth="1.6"
         fill="none"
         strokeLinecap="round"
@@ -178,13 +182,13 @@ export default function ChatPanel(props: ChatPanelProps) {
   // Connect to WebSocket for real-time chat
   useEffect(() => {
     if (!user?.id) return;
-    ws.connect(user.id, (event) => {
+    ws.connect(user.id, (event: WSEvent) => {
       if (event.type === "MESSAGE") {
         const msg = event.payload;
         // Always call parent callback to update conversation/messages state
         const newMsg = {
           id: msg.id || Math.random().toString(),
-          from: msg.senderName === user.username ? "me" : "them",
+          from: (msg.senderName === user.username ? "me" : "them") as "me" | "them",
           text: msg.contents,
           time: msg.time || new Date().toLocaleTimeString(),
           messageType: msg.messageType || undefined,

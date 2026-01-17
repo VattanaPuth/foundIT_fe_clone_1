@@ -108,15 +108,18 @@ export default function TalentList({
                   title="View Profile"
                 >
                   {talent.imageUrl ? (
-                    <img
+                    <Image
                       src={talent.imageUrl}
                       alt={`${talent.name}'s profile`}
                       className="w-16 h-16 rounded-full object-cover"
+                      width={64}
+                      height={64}
                       onError={(e) => {
                         // Fallback to letter avatar if image fails to load
-                        e.currentTarget.style.display = "none";
+                        (e.currentTarget as HTMLImageElement).style.display =
+                          "none";
                         e.currentTarget.nextElementSibling?.classList.remove(
-                          "hidden"
+                          "hidden",
                         );
                       }}
                     />
@@ -137,10 +140,10 @@ export default function TalentList({
                   <p className="text-sm text-gray-600">{talent.title}</p>
                 </div>
               </div>
-              <button onClick={() => toggleFavorite(talent.id)}>
+              <button onClick={() => toggleFavorite(Number(talent.id))}>
                 <Heart
                   className={`w-6 h-6 ${
-                    favorites.includes(talent.id)
+                    favorites.includes(Number(talent.id))
                       ? "fill-red-500 text-red-500"
                       : "text-gray-400"
                   }`}
@@ -180,7 +183,7 @@ export default function TalentList({
                 className="w-full py-2.5 bg-gray-100 rounded-lg font-medium hover:bg-green-100 hover:text-green-700 flex justify-center cursor-pointer transition-all"
                 onClick={() => {
                   console.log(
-                    `Navigating to Profile ID: ${talent.id} - ${talent.name}`
+                    `Navigating to Profile ID: ${talent.id} - ${talent.name}`,
                   );
                   router.push(`/page/client/viewprofile?id=${talent.id}`);
                 }}

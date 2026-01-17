@@ -521,7 +521,7 @@ function deleteActiveConversation() {
               onSend={sendMessage}
               menuRef={menuRef}
               user={user}
-              messagesEndRef={messagesEndRef} 
+messagesEndRef={messagesEndRef as React.RefObject<HTMLDivElement>}
             />
           </div>
         </div>

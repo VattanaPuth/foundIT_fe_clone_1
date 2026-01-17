@@ -1,5 +1,5 @@
 // API base URL - update this based on your backend configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8085";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://foundit-c7e7.onrender.com";
 
 export interface EkycRequest {
   fullname: string;

@@ -1,10 +1,14 @@
 "use client";
+import Image from "next/image";
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Eye } from "lucide-react";
 
-function handleKeyboardActivate(e: React.KeyboardEvent, onActivate: () => void) {
+function handleKeyboardActivate(
+  e: React.KeyboardEvent,
+  onActivate: () => void,
+) {
   if (e.key === "Enter" || e.key === " ") {
     e.preventDefault();
     onActivate();
@@ -38,7 +42,12 @@ export default function Top({ onOpenUpdate }: { onOpenUpdate: () => void }) {
     };
   }, [open]);
 
-  const ranges: Range[] = ["All time", "Last 9 days", "Last 30 days", "Last 90 days"];
+  const ranges: Range[] = [
+    "All time",
+    "Last 9 days",
+    "Last 30 days",
+    "Last 90 days",
+  ];
 
   return (
     <section className="w-full">
@@ -53,7 +62,7 @@ export default function Top({ onOpenUpdate }: { onOpenUpdate: () => void }) {
             onClick={() => router.push("/page/seller/home/myproduct")}
             onKeyDown={(e) =>
               handleKeyboardActivate(e, () =>
-                router.push("/page/seller/home/myproduct")
+                router.push("/page/seller/home/myproduct"),
               )
             }
             className="mt-2 h-9 w-9 rounded-lg hover:bg-gray-100 grid place-items-center cursor-pointer select-none text-gray-700"
@@ -64,10 +73,12 @@ export default function Top({ onOpenUpdate }: { onOpenUpdate: () => void }) {
 
           {/* bigger thumbnail */}
           <div className="shrink-0 rounded-2xl overflow-hidden bg-gray-200 h-16 w-16 md:h-20 md:w-20">
-            <img
+            <Image
               src="/images/modern.png"
               alt="Product"
               className="h-full w-full object-cover"
+              width={80}
+              height={80}
             />
           </div>
 
@@ -95,14 +106,14 @@ export default function Top({ onOpenUpdate }: { onOpenUpdate: () => void }) {
                 tabIndex={0}
                 onClick={() =>
                   router.push(
-                    "/page/seller/home/myproduct/productdetail/productpreview"
+                    "/page/seller/home/myproduct/productdetail/productpreview",
                   )
                 }
                 onKeyDown={(e) =>
                   handleKeyboardActivate(e, () =>
                     router.push(
-                      "/page/seller/home/myproduct/productdetail/productpreview"
-                    )
+                      "/page/seller/home/myproduct/productdetail/productpreview",
+                    ),
                   )
                 }
                 className="h-9 px-3 rounded-lg bg-white border border-gray-200 shadow-sm
@@ -151,7 +162,9 @@ export default function Top({ onOpenUpdate }: { onOpenUpdate: () => void }) {
             role="button"
             tabIndex={0}
             onClick={() => setOpen((v) => !v)}
-            onKeyDown={(e) => handleKeyboardActivate(e, () => setOpen((v) => !v))}
+            onKeyDown={(e) =>
+              handleKeyboardActivate(e, () => setOpen((v) => !v))
+            }
             className="h-10 w-full md:w-auto md:min-w-[170px] px-4 rounded-xl bg-white border border-gray-200 shadow-sm
                        text-sm text-gray-700 inline-flex items-center justify-between gap-3
                        cursor-pointer select-none hover:bg-gray-50 hover:border-gray-300 transition"
@@ -185,7 +198,9 @@ export default function Top({ onOpenUpdate }: { onOpenUpdate: () => void }) {
                   }
                   className={
                     "px-4 py-2 text-sm cursor-pointer select-none hover:bg-gray-50 " +
-                    (opt === range ? "bg-gray-50 text-gray-900" : "text-gray-800") +
+                    (opt === range
+                      ? "bg-gray-50 text-gray-900"
+                      : "text-gray-800") +
                     (idx === 0 ? "" : "")
                   }
                   aria-label={opt}

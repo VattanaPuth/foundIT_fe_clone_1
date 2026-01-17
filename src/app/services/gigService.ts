@@ -1,7 +1,7 @@
 // Example API service for gig operations with permission handling
 import authService from "./authService";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8085";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://foundit-c7e7.onrender.com";
 
 export interface Gig {
   id: string;

@@ -2,7 +2,7 @@
 
 function handleKeyboardActivate(
   e: React.KeyboardEvent,
-  onActivate: () => void
+  onActivate: () => void,
 ) {
   if (e.key === "Enter" || e.key === " ") {
     e.preventDefault();
@@ -138,7 +138,7 @@ export default function MoreOptionsAccordion({
                     onClick={() => setSkills(skills.filter((x) => x !== s))}
                     onKeyDown={(e) =>
                       handleKeyboardActivate(e, () =>
-                        setSkills(skills.filter((x) => x !== s))
+                        setSkills(skills.filter((x) => x !== s)),
                       )
                     }
                     className="text-gray-500 hover:text-gray-700 cursor-pointer"
@@ -204,7 +204,7 @@ export default function MoreOptionsAccordion({
                       }
                       onKeyDown={(e) =>
                         handleKeyboardActivate(e, () =>
-                          setDeliverables(deliverables.filter((x) => x !== d))
+                          setDeliverables(deliverables.filter((x) => x !== d)),
                         )
                       }
                       className="text-gray-500 hover:text-gray-700 cursor-pointer select-none"
@@ -234,7 +234,9 @@ export default function MoreOptionsAccordion({
                 "focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-400",
               ].join(" ")}
             />
-            <div className="text-xs text-gray-400 mt-2">(Press Enter to add)</div>
+            <div className="text-xs text-gray-400 mt-2">
+              (Press Enter to add)
+            </div>
           </div>
 
           {/* Screening questions (static) */}
@@ -256,7 +258,9 @@ export default function MoreOptionsAccordion({
               <div className="text-gray-500">
                 + Can you share examples of similar work?
               </div>
-              <div className="text-gray-500">+ What is your availability to start?</div>
+              <div className="text-gray-500">
+                + What is your availability to start?
+              </div>
               <div className="text-gray-500">
                 + Have you worked with [specific tool/technology] before?
               </div>
@@ -274,14 +278,15 @@ export default function MoreOptionsAccordion({
               role="button"
               tabIndex={0}
               aria-label="Toggle NDA requirement"
-              aria-checked={ndaRequired}
               onClick={() => setNdaRequired(!ndaRequired)}
               onKeyDown={(e) =>
                 handleKeyboardActivate(e, () => setNdaRequired(!ndaRequired))
               }
               className={[
                 "w-12 h-7 rounded-full cursor-pointer select-none flex items-center",
-                ndaRequired ? "bg-green-500 justify-end" : "bg-gray-300 justify-start",
+                ndaRequired
+                  ? "bg-green-500 justify-end"
+                  : "bg-gray-300 justify-start",
                 "px-1",
               ].join(" ")}
             >

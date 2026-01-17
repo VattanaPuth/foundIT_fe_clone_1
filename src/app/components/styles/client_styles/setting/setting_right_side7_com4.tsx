@@ -18,7 +18,7 @@ const CheckCircleIcon = () => (
 );
 
 export default function SettingRightSide7Com4() {
-  const [securityData, setSecurityData] = useState<SecurityEventsData>({
+  const [securityData] = useState<SecurityEventsData>({
     events: [
       {
         id: '1',

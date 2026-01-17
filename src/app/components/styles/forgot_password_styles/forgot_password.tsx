@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Image from "next/image";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface FormData {
   email: string;
@@ -15,18 +16,18 @@ interface FormErrors {
   confirmPassword?: string;
 }
 
-type Step = 'email' | 'otp' | 'reset';
+type Step = "email" | "otp" | "reset";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8085";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://foundit-c7e7.onrender.com";
 
 export default function ForgotPassword() {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState<Step>('email');
-  const [formData, setFormData] = useState<FormData>({ 
-    email: '', 
-    otp: '',
-    password: '', 
-    confirmPassword: '' 
+  const [currentStep, setCurrentStep] = useState<Step>("email");
+  const [formData, setFormData] = useState<FormData>({
+    email: "",
+    otp: "",
+    password: "",
+    confirmPassword: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -38,7 +39,7 @@ export default function ForgotPassword() {
 
   // Timer effect for OTP resend
   React.useEffect(() => {
-    if (currentStep === 'otp' && resendTimer > 0) {
+    if (currentStep === "otp" && resendTimer > 0) {
       const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
       return () => clearTimeout(timer);
     } else if (resendTimer === 0) {
@@ -57,19 +58,19 @@ export default function ForgotPassword() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name as keyof FormErrors]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
   const handleEmailSubmit = async () => {
     const newErrors: FormErrors = {};
-    
+
     if (!formData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
+      newErrors.email = "Please enter a valid email";
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -81,24 +82,26 @@ export default function ForgotPassword() {
 
     try {
       const response = await fetch(`${API_BASE_URL}/register/forgot-password`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email: formData.email }),
       });
 
       if (response.ok) {
         // Move to OTP verification step
-        setCurrentStep('otp');
+        setCurrentStep("otp");
         setResendTimer(60);
         setCanResendOtp(false);
       } else {
-        const data = await response.json().catch(() => ({ message: 'Something went wrong' }));
-        setErrors({ email: data.message || 'Email not found' });
+        const data = await response
+          .json()
+          .catch(() => ({ message: "Something went wrong" }));
+        setErrors({ email: data.message || "Email not found" });
       }
-    } catch (error) {
-      setErrors({ email: 'Network error. Please try again.' });
+    } catch {
+      setErrors({ email: "Network error. Please try again." });
     } finally {
       setIsLoading(false);
     }
@@ -106,11 +109,11 @@ export default function ForgotPassword() {
 
   const handleOtpVerify = () => {
     const newErrors: FormErrors = {};
-    
+
     if (!formData.otp) {
-      newErrors.otp = 'OTP is required';
+      newErrors.otp = "OTP is required";
     } else if (formData.otp.length !== 6) {
-      newErrors.otp = 'OTP must be 6 digits';
+      newErrors.otp = "OTP must be 6 digits";
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -119,16 +122,16 @@ export default function ForgotPassword() {
     }
 
     // Move to password reset step
-    setCurrentStep('reset');
+    setCurrentStep("reset");
   };
 
   const handleResendOtp = async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/register/resend-otp`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email: formData.email }),
       });
@@ -138,11 +141,13 @@ export default function ForgotPassword() {
         setCanResendOtp(false);
         setErrors({});
       } else {
-        const data = await response.json().catch(() => ({ message: 'Failed to resend OTP' }));
-        setErrors({ otp: data.message || 'Failed to resend OTP' });
+        const data = await response
+          .json()
+          .catch(() => ({ message: "Failed to resend OTP" }));
+        setErrors({ otp: data.message || "Failed to resend OTP" });
       }
-    } catch (error) {
-      setErrors({ otp: 'Network error. Please try again.' });
+    } catch {
+      setErrors({ otp: "Network error. Please try again." });
     } finally {
       setIsLoading(false);
     }
@@ -150,17 +155,17 @@ export default function ForgotPassword() {
 
   const handlePasswordReset = async () => {
     const newErrors: FormErrors = {};
-    
+
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (!validatePassword(formData.password)) {
-      newErrors.password = 'Password must be at least 8 characters';
+      newErrors.password = "Password must be at least 8 characters";
     }
 
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
+      newErrors.confirmPassword = "Please confirm your password";
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -172,35 +177,37 @@ export default function ForgotPassword() {
 
     try {
       const response = await fetch(`${API_BASE_URL}/register/reset-password`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           email: formData.email,
           otp: formData.otp,
-          newPassword: formData.password 
+          newPassword: formData.password,
         }),
       });
 
       if (response.ok) {
         setIsSuccess(true);
       } else {
-        const data = await response.json().catch(() => ({ message: 'Something went wrong' }));
-        setErrors({ password: data.message || 'Invalid OTP or password' });
+        const data = await response
+          .json()
+          .catch(() => ({ message: "Something went wrong" }));
+        setErrors({ password: data.message || "Invalid OTP or password" });
       }
-    } catch (error) {
-      setErrors({ password: 'Network error. Please try again.' });
+    } catch {
+      setErrors({ password: "Network error. Please try again." });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !isLoading) {
-      if (currentStep === 'email') {
+    if (e.key === "Enter" && !isLoading) {
+      if (currentStep === "email") {
         handleEmailSubmit();
-      } else if (currentStep === 'otp') {
+      } else if (currentStep === "otp") {
         handleOtpVerify();
       } else {
         handlePasswordReset();
@@ -209,14 +216,14 @@ export default function ForgotPassword() {
   };
 
   const handleBackToSignIn = () => {
-    router.push('/page/sign_in');
+    router.push("/page/sign_in");
   };
 
   return (
-    <div className='w-full h-screen'>
+    <div className="w-full h-screen">
       {/* Logo */}
-      <div className='flex justify-center w-full h-9 mt-12 mb-8'>
-        <img src="/favicon.ico" alt="logo" />
+      <div className="flex justify-center w-full h-9 mt-12 mb-8">
+        <Image src="/favicon.ico" alt="logo" width={36} height={36} />
       </div>
 
       <div className="w-full min-h-screen bg-gray-50 flex items-center justify-center px-4 sm:px-6 lg:px-8 -mt-36">
@@ -224,7 +231,6 @@ export default function ForgotPassword() {
           <div className="flex flex-col lg:flex-row">
             {/* Left Section - Form */}
             <div className="w-full lg:w-1/2 p-6 sm:p-8 md:p-12 lg:p-16">
-
               {/* heading */}
               <div className="mb-3 text-2xl sm:text-4xl font-semibold text-gray-900">
                 Reset your password
@@ -232,11 +238,11 @@ export default function ForgotPassword() {
 
               {/* Description */}
               <div className="mb-6 text-sm text-gray-600">
-                {currentStep === 'email' 
+                {currentStep === "email"
                   ? "Enter your email and we'll send you an OTP to reset your password."
-                  : currentStep === 'otp'
-                  ? `Enter the 6-digit OTP sent to ${formData.email}`
-                  : "Enter your new password below."}
+                  : currentStep === "otp"
+                    ? `Enter the 6-digit OTP sent to ${formData.email}`
+                    : "Enter your new password below."}
               </div>
 
               {isSuccess ? (
@@ -260,8 +266,18 @@ export default function ForgotPassword() {
                     </div>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        <svg
+                          className="w-5 h-5 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                          />
                         </svg>
                       </div>
                       <input
@@ -271,11 +287,13 @@ export default function ForgotPassword() {
                         onChange={handleInputChange}
                         onKeyPress={handleKeyPress}
                         placeholder="your@example.com"
-                        disabled={currentStep !== 'email'}
+                        disabled={currentStep !== "email"}
                         className={`w-full pl-10 pr-4 py-3 border ${
-                          errors.email ? 'border-red-300' : 'border-gray-300'
+                          errors.email ? "border-red-300" : "border-gray-300"
                         } rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all ${
-                          currentStep !== 'email' ? 'bg-gray-100 cursor-not-allowed' : ''
+                          currentStep !== "email"
+                            ? "bg-gray-100 cursor-not-allowed"
+                            : ""
                         }`}
                       />
                     </div>
@@ -287,15 +305,25 @@ export default function ForgotPassword() {
                   </div>
 
                   {/* OTP Input - Show after email submission */}
-                  {currentStep === 'otp' && (
+                  {currentStep === "otp" && (
                     <div>
                       <div className="text-lg text-gray-500 font-medium mb-2">
                         OTP Code
                       </div>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                          <svg
+                            className="w-5 h-5 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                            />
                           </svg>
                         </div>
                         <input
@@ -307,7 +335,7 @@ export default function ForgotPassword() {
                           placeholder="Enter 6-digit OTP"
                           maxLength={6}
                           className={`w-full pl-10 pr-4 py-3 border ${
-                            errors.otp ? 'border-red-300' : 'border-gray-300'
+                            errors.otp ? "border-red-300" : "border-gray-300"
                           } rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all`}
                         />
                       </div>
@@ -318,7 +346,9 @@ export default function ForgotPassword() {
                       )}
                       <div className="mt-2 flex items-center justify-between text-sm">
                         <span className="text-gray-600">
-                          {canResendOtp ? 'Didn\'t receive OTP?' : `Resend in ${resendTimer}s`}
+                          {canResendOtp
+                            ? "Didn't receive OTP?"
+                            : `Resend in ${resendTimer}s`}
                         </span>
                         {canResendOtp && (
                           <span
@@ -333,7 +363,7 @@ export default function ForgotPassword() {
                   )}
 
                   {/* Password Fields - Show after OTP verification */}
-                  {currentStep === 'reset' && (
+                  {currentStep === "reset" && (
                     <>
                       {/* Password Input */}
                       <div>
@@ -342,8 +372,18 @@ export default function ForgotPassword() {
                         </div>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            <svg
+                              className="w-5 h-5 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                              />
                             </svg>
                           </div>
                           <input
@@ -354,18 +394,35 @@ export default function ForgotPassword() {
                             onKeyPress={handleKeyPress}
                             placeholder="Enter your password"
                             className={`w-full pl-10 pr-12 py-3 border ${
-                              errors.password ? 'border-red-300' : 'border-gray-300'
+                              errors.password
+                                ? "border-red-300"
+                                : "border-gray-300"
                             } rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all`}
                           />
-                          <div 
+                          <div
                             className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
                             onClick={() => setShowPassword(!showPassword)}
                           >
-                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg
+                              className="w-5 h-5 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
                               {showPassword ? (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
                               ) : (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                                />
                               )}
                             </svg>
                           </div>
@@ -384,8 +441,18 @@ export default function ForgotPassword() {
                         </div>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            <svg
+                              className="w-5 h-5 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                              />
                             </svg>
                           </div>
                           <input
@@ -396,18 +463,37 @@ export default function ForgotPassword() {
                             onKeyPress={handleKeyPress}
                             placeholder="Re-enter your password"
                             className={`w-full pl-10 pr-12 py-3 border ${
-                              errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                              errors.confirmPassword
+                                ? "border-red-300"
+                                : "border-gray-300"
                             } rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all`}
                           />
-                          <div 
+                          <div
                             className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            onClick={() =>
+                              setShowConfirmPassword(!showConfirmPassword)
+                            }
                           >
-                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg
+                              className="w-5 h-5 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
                               {showConfirmPassword ? (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
                               ) : (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                                />
                               )}
                             </svg>
                           </div>
@@ -423,12 +509,28 @@ export default function ForgotPassword() {
 
                   {/* Submit Button */}
                   <div
-                    onClick={!isLoading ? (currentStep === 'email' ? handleEmailSubmit : currentStep === 'otp' ? handleOtpVerify : handlePasswordReset) : undefined}
+                    onClick={
+                      !isLoading
+                        ? currentStep === "email"
+                          ? handleEmailSubmit
+                          : currentStep === "otp"
+                            ? handleOtpVerify
+                            : handlePasswordReset
+                        : undefined
+                    }
                     className={`w-full bg-[#D92AD0] text-white py-3 px-4 rounded-2xl font-medium text-center cursor-pointer transition-all ${
-                      isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-pink-300'
+                      isLoading
+                        ? "opacity-70 cursor-not-allowed"
+                        : "hover:bg-pink-300"
                     }`}
                   >
-                    {isLoading ? 'Processing...' : currentStep === 'email' ? 'Send OTP' : currentStep === 'otp' ? 'Verify OTP' : 'Reset password'}
+                    {isLoading
+                      ? "Processing..."
+                      : currentStep === "email"
+                        ? "Send OTP"
+                        : currentStep === "otp"
+                          ? "Verify OTP"
+                          : "Reset password"}
                   </div>
                 </div>
               )}
@@ -444,21 +546,31 @@ export default function ForgotPassword() {
                   </span>
                 </div>
               )}
-
-              
             </div>
 
             {/* Right Section - Features */}
             <div className="w-full lg:w-1/2 bg-gray-50 p-6 sm:p-8 md:p-12 lg:p-16 flex items-center">
               <div className="w-full space-y-12">
                 <div>
-                  <p className='text-3xl font-bold'>Secure & simple password reset</p>
+                  <p className="text-3xl font-bold">
+                    Secure & simple password reset
+                  </p>
                 </div>
                 {/* Feature 1 */}
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0 w-12 h-12 bg-[#D92AD0] rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
                     </svg>
                   </div>
                   <div className="flex-1">
@@ -466,7 +578,8 @@ export default function ForgotPassword() {
                       Single-use secure links
                     </div>
                     <div className="text-sm text-gray-600">
-                      Each reset link works only once and expires after 15 minutes
+                      Each reset link works only once and expires after 15
+                      minutes
                     </div>
                   </div>
                 </div>
@@ -474,8 +587,18 @@ export default function ForgotPassword() {
                 {/* Feature 2 */}
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0 w-12 h-12 bg-[#D92AD0] rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                      />
                     </svg>
                   </div>
                   <div className="flex-1">
@@ -491,8 +614,18 @@ export default function ForgotPassword() {
                 {/* Feature 3 */}
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0 w-12 h-12 bg-[#D92AD0] rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   </div>
                   <div className="flex-1">
@@ -507,8 +640,11 @@ export default function ForgotPassword() {
 
                 {/* Support Link */}
                 <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-600">
-                  Need help? Contact{' '}
-                  <a href="mailto:support@marketplace.com" className="text-pink-500 hover:text-pink-600 transition-colors">
+                  Need help? Contact{" "}
+                  <a
+                    href="mailto:support@marketplace.com"
+                    className="text-pink-500 hover:text-pink-600 transition-colors"
+                  >
                     support@marketplace.com
                   </a>
                 </div>

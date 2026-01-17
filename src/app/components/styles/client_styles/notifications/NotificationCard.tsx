@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import React from "react";
 import IconBadge from "@/app/components/styles/client_styles/notifications/IconBadge";
@@ -36,10 +37,12 @@ export default function NotificationCard({
         {/* Left icon / avatar */}
         <div className="pt-0.5">
           {typeof item.avatarSrc === "string" ? (
-            <img
-              src={item.avatarSrc || ""} 
+            <Image
+              src={item.avatarSrc || ""}
               alt={item.avatarAlt || item.title}
               className="h-9 w-9 rounded-full object-cover border border-gray-200 bg-gray-100"
+              width={36}
+              height={36}
             />
           ) : (
             <IconBadge

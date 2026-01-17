@@ -8,8 +8,20 @@ import ClientNavHeader from "@/app/components/styles/global_styles/client/header
 import { Loading } from "@/app/components/styles/global_styles/loading/loading";
 import ClientFooter from "@/app/components/styles/global_styles/client/footer";
 
+interface OrderData {
+  orderId: string;
+  projectTitle: string;
+  teamMembers: any[]; // TeamMember type
+  status: "Active" | "Completed" | "Pending" | "Cancelled";
+  deadline: string;
+  nda: boolean;
+  orderOverview: any; // OrderOverview type
+  paymentSummary: any; // PaymentSummary type
+  quickLinks: any[]; // QuickLink type
+}
+
 const OrdersIdPage: React.FC = () => {
-  const [orderData, setOrderData] = useState<Record<string, unknown> | null>(
+  const [orderData, setOrderData] = useState<OrderData | null>(
     null
   );
   const [loading, setLoading] = useState(true);
@@ -91,7 +103,7 @@ const OrdersIdPage: React.FC = () => {
     <div className="w-full min-h-screen bg-[#F9FAFB]">
       <ClientNavHeader />
       <SubHeaderOrderId
-        orderId={orderData.orderId}
+orderId={orderData.orderId as string}
         projectTitle={orderData.projectTitle}
         teamMembers={orderData.teamMembers}
         status={orderData.status}

@@ -124,7 +124,7 @@ export default function AdminUsersDetailPage() {
 
           {/* Tab content */}
           <div className="mt-4">
-            {tab === "overview" && <OverviewPanels />}        
+            {tab === "overview" && <OverviewPanels status={status} />}
             {tab === "freelancer" && <FreelancerTabPanels />}
             
             {tab === "client" && <ClientTabPanels />}

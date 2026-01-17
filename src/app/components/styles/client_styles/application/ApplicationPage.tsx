@@ -1,17 +1,37 @@
 "use client";
 
+
 import React, { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 
+// DTO types for backend responses
+type ProposalDto = {
+  id: string | number;
+  freelancerName?: string;
+  freelancerSkill?: string;
+  freelancerRating?: number;
+  freelancerReviewCount?: number;
+  proposedBudget?: number;
+  deliveryDays?: number;
+  coverLetter?: string;
+  status?: string;
+  createdAt?: string;
+};
+type MatchDto = {
+  gigId: string | number;
+  freelancerName?: string;
+  skillName?: string;
+  rating?: number;
+  hourlyRate?: number;
+};
+
 import {
-  JOB,
-  MESSAGES,
-  PROPOSALS,
-  HIRED,
-  MATCHES,
-  type TabKey,
-  type Proposal,
+  TabKey,
+  Proposal,
+  MessageRow,
+  HiredRow,
+  MatchRow,
 } from "@/app/components/styles/client_styles/application/mockdata";
 
 import {
@@ -41,7 +61,7 @@ import CloseJobPostingModal from "@/app/components/styles/client_styles/applicat
 export default function ApplicationPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const stickyTopClass = "top-[88px]"; // 72px header + 16px gap
+  // const stickyTopClass = "top-[88px]"; // 72px header + 16px gap
 
   const [tab, setTab] = useState<TabKey>("proposals");
 
@@ -50,14 +70,17 @@ export default function ApplicationPage() {
   const [isLoadingProposals, setIsLoadingProposals] = useState(true);
 
   // sidebar data
-  const [matches, setMatches] = useState<any[]>([]);
+  const [matches, setMatches] = useState<MatchRow[]>([]);
   const [isLoadingMatches, setIsLoadingMatches] = useState(true);
-  const [jobStats, setJobStats] = useState({ views: 0, proposals: 0 });
+  const [jobStats, setJobStats] = useState<{
+    views: number;
+    proposals: number;
+  }>({ views: 0, proposals: 0 });
 
   // messages and hired data
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<MessageRow[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(true);
-  const [hired, setHired] = useState<any[]>([]);
+  const [hired, setHired] = useState<HiredRow[]>([]);
   const [isLoadingHired, setIsLoadingHired] = useState(true);
 
   // job info for header
@@ -78,7 +101,7 @@ export default function ApplicationPage() {
 
   const shortlistedCount = useMemo(
     () => proposalList.filter((p) => p.shortlisted).length,
-    [proposalList]
+    [proposalList],
   );
 
   // Fetch proposals from backend
@@ -92,19 +115,19 @@ export default function ApplicationPage() {
       try {
         setIsLoadingProposals(true);
         const response = await fetch(
-          `http://localhost:8085/proposals/client/${user.id}`,
+          `https://foundit-c7e7.onrender.com/proposals/client/${user.id}`,
           {
             headers: {
               "Content-Type": "application/json",
             },
-          }
+          },
         );
 
         if (response.ok) {
           const data = await response.json();
 
           // Map backend data to frontend Proposal format
-          const mappedProposals: Proposal[] = data.map((item: any) => ({
+          const mappedProposals: Proposal[] = data.map((item: ProposalDto) => ({
             id: item.id.toString(),
             name: item.freelancerName || "Unknown Freelancer",
             title: item.freelancerSkill || "Freelancer",
@@ -144,19 +167,19 @@ export default function ApplicationPage() {
       try {
         setIsLoadingMatches(true);
         const response = await fetch(
-          "http://localhost:8085/gigs/freelancer/client-view",
+          "https://foundit-c7e7.onrender.com/gigs/freelancer/client-view",
           {
             headers: {
               "Content-Type": "application/json",
             },
-          }
+          },
         );
 
         if (response.ok) {
           const data = await response.json();
 
           // Map backend data to match format, limit to 3-5 matches
-          const mappedMatches = data.slice(0, 5).map((item: any) => ({
+          const mappedMatches = data.slice(0, 5).map((item: MatchDto) => ({
             id: item.gigId.toString(),
             name: item.freelancerName || "Unknown",
             subtitle: item.skillName || "Freelancer",
@@ -193,7 +216,7 @@ export default function ApplicationPage() {
         setIsLoadingMessages(true);
         // TODO: Replace with actual messages endpoint when available
         // For now, we'll use an empty array or mock data structure
-        // const response = await fetch(`http://localhost:8085/messages/client/${user.id}`);
+        // const response = await fetch(`https://foundit-c7e7.onrender.com/messages/client/${user.id}`);
 
         // Placeholder: Return empty messages for now
         setMessages([]);
@@ -219,12 +242,12 @@ export default function ApplicationPage() {
       try {
         setIsLoadingHired(true);
         const response = await fetch(
-          `http://localhost:8085/proposals/client/${user.id}`,
+          `https://foundit-c7e7.onrender.com/proposals/client/${user.id}`,
           {
             headers: {
               "Content-Type": "application/json",
             },
-          }
+          },
         );
 
         if (response.ok) {
@@ -232,11 +255,11 @@ export default function ApplicationPage() {
 
           // Filter only accepted proposals
           const acceptedProposals = data.filter(
-            (item: any) => item.status === "ACCEPTED"
+            (item: ProposalDto) => item.status === "ACCEPTED",
           );
 
           // Map to HiredRow format
-          const mappedHired = acceptedProposals.map((item: any) => ({
+          const mappedHired = acceptedProposals.map((item: ProposalDto) => ({
             id: item.id.toString(),
             name: item.freelancerName || "Unknown Freelancer",
             role: item.freelancerSkill || "Freelancer",
@@ -274,7 +297,7 @@ export default function ApplicationPage() {
       if (!user?.id) return;
       try {
         const response = await fetch(
-          `http://localhost:8085/jobs/client/${user.id}`
+          `https://foundit-c7e7.onrender.com/jobs/client/${user.id}`,
         );
         if (response.ok) {
           const data = await response.json();
@@ -291,7 +314,7 @@ export default function ApplicationPage() {
             visibility: job.status || "-",
           });
         }
-      } catch (e) {
+      } catch {
         setJobStats({ views: 0, proposals: proposalList.length });
         setJobInfo({
           title: "-",
@@ -524,8 +547,8 @@ export default function ApplicationPage() {
                           prev.map((p) =>
                             p.id === id
                               ? { ...p, shortlisted: !p.shortlisted }
-                              : p
-                          )
+                              : p,
+                          ),
                         );
                       }}
                       onOpenProposal={() =>
@@ -533,7 +556,7 @@ export default function ApplicationPage() {
                       }
                       onHireClick={(proposalId) => {
                         router.push(
-                          `/page/client/application/proposals?id=${proposalId}`
+                          `/page/client/application/proposals?id=${proposalId}`,
                         );
                       }}
                     />

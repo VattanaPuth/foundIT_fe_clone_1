@@ -1,6 +1,14 @@
 import { CheckCircle } from "lucide-react";
 
-export default function OverviewSection({ gigData }) {
+interface OverviewSectionProps {
+  gigData: {
+    description?: string;
+    shortBio?: string;
+    skillName?: string;
+  };
+}
+
+export default function OverviewSection({ gigData }: OverviewSectionProps) {
   return (
     <>
       {/* LEFT */}

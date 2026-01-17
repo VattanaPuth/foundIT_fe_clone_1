@@ -1,19 +1,21 @@
-import React, { useState } from 'react';
-import { Check, Upload } from 'lucide-react';
+import React, { useState } from "react";
+import { Check, Upload } from "lucide-react";
 
 export default function PaymentSuccessForm() {
-  const [showRequirement, setShowRequirement] = useState(true);
+  const [showRequirement] = useState(true);
   const [formData, setFormData] = useState({
-    question1: '',
-    question2: '',
-    question3: ''
+    question1: "",
+    question2: "",
+    question3: "",
   });
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const answeredCount = Object.values(formData).filter(v => v.trim() !== '').length;
+  const answeredCount = Object.values(formData).filter(
+    (v) => v.trim() !== "",
+  ).length;
 
   return (
     <div className="min-h-screen w-full bg-gray-50 p-4 flex items-center justify-center">
@@ -52,7 +54,7 @@ export default function PaymentSuccessForm() {
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   className="bg-emerald-400 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${(answeredCount / 3) * 100}%` }}
                 />
@@ -74,7 +76,7 @@ export default function PaymentSuccessForm() {
               </div>
               <textarea
                 value={formData.question1}
-                onChange={(e) => handleInputChange('question1', e.target.value)}
+                onChange={(e) => handleInputChange("question1", e.target.value)}
                 placeholder="Type your answer here..."
                 className="w-full p-3 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-gray-50"
                 rows={4}
@@ -96,7 +98,7 @@ export default function PaymentSuccessForm() {
               </div>
               <textarea
                 value={formData.question2}
-                onChange={(e) => handleInputChange('question2', e.target.value)}
+                onChange={(e) => handleInputChange("question2", e.target.value)}
                 placeholder="Type your answer here..."
                 className="w-full p-3 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-gray-50"
                 rows={4}
@@ -113,7 +115,7 @@ export default function PaymentSuccessForm() {
               </div>
               <textarea
                 value={formData.question3}
-                onChange={(e) => handleInputChange('question3', e.target.value)}
+                onChange={(e) => handleInputChange("question3", e.target.value)}
                 placeholder="Type your answer here..."
                 className="w-full p-3 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-gray-50"
                 rows={4}
@@ -143,15 +145,16 @@ export default function PaymentSuccessForm() {
             </div>
 
             {/* Submit Button */}
-            <div className='flex text-center'>
-                <p className="w-full bg-emerald-400 hover:bg-emerald-500 text-white font-medium py-3 rounded-lg transition-colors">
+            <div className="flex text-center">
+              <p className="w-full bg-emerald-400 hover:bg-emerald-500 text-white font-medium py-3 rounded-lg transition-colors">
                 Submit Requirements
-                </p>
+              </p>
             </div>
 
             {/* Footer Note */}
             <p className="text-xs text-gray-500 text-center mt-4">
-              Your order countdown begins after submission. You can always add more details in the Order Room.
+              Your order countdown begins after submission. You can always add
+              more details in the Order Room.
             </p>
           </div>
         </div>

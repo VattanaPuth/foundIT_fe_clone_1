@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
@@ -63,7 +64,8 @@ const TOP_PILLS = [
 
 const LOCATIONS = ["Cambodia", "Remote", "Austin, TX", "Singapore", "Thailand"];
 
-const freelancerJobsMock: JobItem[] = [
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _freelancerJobsMock: JobItem[] = [
   {
     id: 1,
     title: "React dashboard for SaaS analytics",
@@ -497,7 +499,7 @@ function FilterSidebarContent(props: {
                   />
                   <div className="text-sm text-gray-700">{exp}</div>
                 </div>
-              )
+              ),
             )}
           </div>
         </details>
@@ -675,7 +677,7 @@ export default function FreelancerHomepagePage() {
   const [budgetMax, setBudgetMax] = useState<number>(5000); // Init value 50%
   const [deliveryTarget, setDeliveryTarget] = useState<DeliveryTarget>("all");
   const [selectedExperience, setSelectedExperience] = useState<Experience[]>(
-    []
+    [],
   );
   const [paymentVerifiedOnly, setPaymentVerifiedOnly] = useState(false);
   const [repeatHireOnly, setRepeatHireOnly] = useState(false);
@@ -716,18 +718,29 @@ export default function FreelancerHomepagePage() {
         }
 
         const response = await fetch(
-          "http://localhost:8085/gigs/client/public?page=0&size=50",
+          "https://foundit-c7e7.onrender.com/gigs/client/public?page=0&size=50",
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (response.ok) {
           const data = await response.json();
           // Transform API data to match JobItem interface
-          const transformedJobs: JobItem[] = data.content.map((gig: any) => ({
+          interface GigResponse {
+            id: number;
+            title: string;
+            category: string;
+            payMode: string;
+            budgetMin?: number;
+            budgetMax?: number;
+            deliveryTime: string;
+            skills?: string;
+            description: string;
+          }
+          const transformedJobs: JobItem[] = data.content.map((gig: GigResponse) => ({
             id: gig.id,
             title: gig.title,
             category: gig.category,
@@ -763,19 +776,19 @@ export default function FreelancerHomepagePage() {
 
   const toggleFavorite = (id: number) => {
     setFavorites((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
   const toggleExperience = (exp: Experience) => {
     setSelectedExperience((prev) =>
-      prev.includes(exp) ? prev.filter((x) => x !== exp) : [...prev, exp]
+      prev.includes(exp) ? prev.filter((x) => x !== exp) : [...prev, exp],
     );
   };
 
   const toggleLocation = (loc: string) => {
     setSelectedLocations((prev) =>
-      prev.includes(loc) ? prev.filter((x) => x !== loc) : [...prev, loc]
+      prev.includes(loc) ? prev.filter((x) => x !== loc) : [...prev, loc],
     );
   };
 
@@ -1099,7 +1112,7 @@ export default function FreelancerHomepagePage() {
                       onClick={() => {
                         if (isAuthenticated) {
                           router.push(
-                            `/page/freelancer/proposal/form?id=${job.id}`
+                            `/page/freelancer/proposal/form?id=${job.id}`,
                           );
                         } else {
                           router.push("/page/(welcome)/sign_in");

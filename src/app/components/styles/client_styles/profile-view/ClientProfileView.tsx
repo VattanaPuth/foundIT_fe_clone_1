@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import React from "react";
 
@@ -63,10 +64,12 @@ export default function ClientProfileView({
             {/* Profile Header */}
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
               <div className="flex items-start gap-6">
-                <img
+                <Image
                   src={profileData.avatarUrl || placeholderAvatar}
                   alt={profileData.fullName}
                   className="w-24 h-24 rounded-full object-cover border-4 border-gray-100"
+                  width={96}
+                  height={96}
                 />
                 <div className="flex-1">
                   <h1 className="text-3xl font-bold text-gray-900">

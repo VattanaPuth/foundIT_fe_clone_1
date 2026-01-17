@@ -137,7 +137,6 @@ export default function MessagesPage() {
             messageType: msg.messageType,
             gigId: msg.gigId ?? null,
             contractOfferId: msg.contractOfferId ?? null,
-            status: msg.status ?? undefined,
           });
         });
 
@@ -208,7 +207,6 @@ export default function MessagesPage() {
                     messageType: msg.messageType,
                     gigId: msg.gigId ?? null,
                     contractOfferId: msg.contractOfferId ?? null,
-                    status: msg.status ?? undefined,
                   }))
               : prev.messages || [];
           return {
@@ -544,8 +542,8 @@ export default function MessagesPage() {
               setChatText={setChatText}
               onSend={sendMessage}
               menuRef={menuRef}
-              user={user}
-              messagesEndRef={messagesEndRef}
+              user={user || {}}
+              messagesEndRef={messagesEndRef as React.RefObject<HTMLDivElement>}
             />
           </div>
         </div>

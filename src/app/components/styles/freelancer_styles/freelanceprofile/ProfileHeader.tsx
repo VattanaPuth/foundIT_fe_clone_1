@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 interface GigData {
-  id: number;
+  id: number | string;
   freelancerName: string;
   shortBio: string;
   description: string;

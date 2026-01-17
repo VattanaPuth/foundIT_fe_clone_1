@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 
 function handleKeyboardActivate(
   e: React.KeyboardEvent,
-  onActivate: () => void
+  onActivate: () => void,
 ) {
   if (e.key === "Enter" || e.key === " ") {
     e.preventDefault();
@@ -95,7 +95,9 @@ function SimpleDropdown({
                       }`}
           aria-label={`${label} dropdown`}
         >
-          <span className={`${value ? "text-gray-900" : "text-gray-400"} truncate`}>
+          <span
+            className={`${value ? "text-gray-900" : "text-gray-400"} truncate`}
+          >
             {value || placeholder}
           </span>
           <ChevronIcon open={open} />
@@ -141,6 +143,9 @@ function SimpleDropdown({
 }
 
 export default function BillingAddressSection() {
+  const [country, setCountry] = useState("");
+  const [stateProv, setStateProv] = useState("");
+
   const countryOptions = [
     "United States",
     "Canada",
@@ -152,27 +157,34 @@ export default function BillingAddressSection() {
     "Germany",
   ];
 
-  const stateMap: Record<string, string[]> = {
-    "United States": ["California", "New York", "Texas", "Florida", "Washington"],
-    Canada: ["Ontario", "British Columbia", "Quebec", "Alberta"],
-    "United Kingdom": ["England", "Scotland", "Wales", "Northern Ireland"],
-    Australia: ["New South Wales", "Victoria", "Queensland", "Western Australia"],
-    Singapore: ["Central", "East", "North", "North-East", "West"],
-    Cambodia: ["Phnom Penh", "Siem Reap", "Battambang", "Kampot"],
-    Japan: ["Tokyo", "Osaka", "Hokkaido", "Fukuoka"],
-    Germany: ["Berlin", "Bavaria", "Hamburg", "Hesse"],
-  };
-
-  const [country, setCountry] = useState("");
-  const [stateProv, setStateProv] = useState("");
+  const stateOptions = useMemo(() => {
+    const stateMap: Record<string, string[]> = {
+      "United States": [
+        "California",
+        "New York",
+        "Texas",
+        "Florida",
+        "Washington",
+      ],
+      Canada: ["Ontario", "British Columbia", "Quebec", "Alberta"],
+      "United Kingdom": ["England", "Scotland", "Wales", "Northern Ireland"],
+      Australia: [
+        "New South Wales",
+        "Victoria",
+        "Queensland",
+        "Western Australia",
+      ],
+      Singapore: ["Central", "East", "North", "North-East", "West"],
+      Cambodia: ["Phnom Penh", "Siem Reap", "Battambang", "Kampot"],
+      Japan: ["Tokyo", "Osaka", "Hokkaido", "Fukuoka"],
+      Germany: ["Berlin", "Bavaria", "Hamburg", "Hesse"],
+    };
+    if (!country) return [];
+    return stateMap[country] || ["State 1", "State 2", "State 3"];
+  }, [country]);
 
   useEffect(() => {
     setStateProv("");
-  }, [country]);
-
-  const stateOptions = useMemo(() => {
-    if (!country) return [];
-    return stateMap[country] || ["State 1", "State 2", "State 3"];
   }, [country]);
 
   return (

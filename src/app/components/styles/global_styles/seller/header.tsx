@@ -1,7 +1,21 @@
 import { useState, useRef, useEffect } from "react";
 
 // Role Switch Modal Component
-function RoleSwitchModal({ isOpen, onClose, currentRole, targetRole, onConfirm, isLoading }) {
+function RoleSwitchModal({
+  isOpen,
+  onClose,
+  currentRole,
+  targetRole,
+  onConfirm,
+  isLoading,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  currentRole: string;
+  targetRole: string;
+  onConfirm: () => void;
+  isLoading: boolean;
+}) {
   if (!isOpen) return null;
 
   const roleColors = {
@@ -10,7 +24,7 @@ function RoleSwitchModal({ isOpen, onClose, currentRole, targetRole, onConfirm, 
     seller: { primary: '#F59E0B', secondary: '#FEF3C7', text: '#F59E0B' }
   };
 
-  const color = roleColors[targetRole] || roleColors.client;
+  const color = roleColors[targetRole as keyof typeof roleColors] || roleColors.client;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
@@ -119,8 +133,8 @@ export default function SellerNavHeader() {
     const [targetRole, setTargetRole] = useState('');
     const [isRoleSwitching, setIsRoleSwitching] = useState(false);
     
-    const jobsRef = useRef(null);
-    const userRef = useRef(null);
+    const jobsRef = useRef<HTMLDivElement | null>(null);
+    const userRef = useRef<HTMLDivElement | null>(null);
 
     // Simulate role switch with loading
     const handleRoleSwitch = async () => {
@@ -139,19 +153,20 @@ export default function SellerNavHeader() {
         console.log(`Switched to ${targetRole} mode`);
     };
 
-    const initiateRoleSwitch = (role) => {
+    const initiateRoleSwitch = (role: string) => {
         if (role === currentRole) return;
-        setTargetRole(role);
+        setTargetRole(role as "client" | "freelancer" | "seller");
         setShowRoleModal(true);
     };
 
     // Close dropdowns when clicking outside
     useEffect(() => {
-        const handleClickOutside = (event) => {
-        if (jobsRef.current && !jobsRef.current.contains(event.target)) {
+        const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as Element | null;
+        if (jobsRef.current && target && !jobsRef.current.contains(target)) {
             setIsJobsDropdownOpen(false);
         }
-        if (userRef.current && !userRef.current.contains(event.target)) {
+        if (userRef.current && target && !userRef.current.contains(target)) {
             setIsUserDropdownOpen(false);
         }
         };
@@ -160,7 +175,7 @@ export default function SellerNavHeader() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleNavigation = (path) => {
+    const handleNavigation = (path: string) => {
         console.log(`Navigating to: ${path}`);
         setIsUserDropdownOpen(false);
         setIsJobsDropdownOpen(false);

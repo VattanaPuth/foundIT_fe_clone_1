@@ -19,7 +19,7 @@ import SimilarJobsCard from "./SimilarJobsCard";
 export default function ViewFullJobPageShell() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const jobId = searchParams.get("id");
+  const jobId = searchParams.get("id") as string | undefined;
   const { isAuthenticated } = useAuth();
   const [liked, setLiked] = useState(false);
   const [job, setJob] = useState<any>(null);

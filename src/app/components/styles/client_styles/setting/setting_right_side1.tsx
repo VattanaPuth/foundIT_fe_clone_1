@@ -2,22 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 
-// Define the structure of the billing data
-interface BillingInfo {
-  fullName: string;
-  location: string;
-  address: string;
-  email: string;
-  cardNumber: string;
-  expiration: string;
-  totalSpent: number;
-  totalHires: number;
-  activeJobs: number;
-  rating: string;
-  taxID: string;
-  currency: string;
-  icon?: React.ReactNode;
-}
 
 // Fields for dynamic rendering - Add placeholders here for reusability
 const userInfoFields = [

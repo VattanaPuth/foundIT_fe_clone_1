@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import {
   IconHeart,
   IconShare,
@@ -52,10 +53,12 @@ export default function ViewFullJobHeader({
             <span>Posted by</span>
 
             {/* Posted-by image (you will replace src) */}
-            <img
+            <Image
               src={postedByImageSrc}
               alt={`${postedByName} avatar`}
               className="h-5 w-5 rounded-full object-cover border border-gray-200"
+              width={20}
+              height={20}
             />
 
             <span className="text-gray-700">{postedByName}</span>

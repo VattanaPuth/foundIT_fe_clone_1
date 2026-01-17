@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React, { useState } from "react";
 
 interface BlockedUser {
@@ -12,28 +13,33 @@ const SettingRightSide6Com3: React.FC = () => {
     {
       name: "Marcus Peterson",
       blockedDate: "Jan 28, 2025",
-      imageUrl: "https://i.pinimg.com/736x/08/8c/39/088c393fc97c51b94fb2426dbfa1a465.jpg", 
+      imageUrl:
+        "https://i.pinimg.com/736x/08/8c/39/088c393fc97c51b94fb2426dbfa1a465.jpg",
     },
     {
       name: "Lisa Anderson",
       blockedDate: "Jan 15, 2025",
-      imageUrl: "https://i.pinimg.com/736x/08/8c/39/088c393fc97c51b94fb2426dbfa1a465.jpg", 
+      imageUrl:
+        "https://i.pinimg.com/736x/08/8c/39/088c393fc97c51b94fb2426dbfa1a465.jpg",
     },
     {
       name: "David Martinez",
-  
+
       blockedDate: "Dec 22, 2024",
-      imageUrl: "https://i.pinimg.com/736x/08/8c/39/088c393fc97c51b94fb2426dbfa1a465.jpg", 
+      imageUrl:
+        "https://i.pinimg.com/736x/08/8c/39/088c393fc97c51b94fb2426dbfa1a465.jpg",
     },
     {
       name: "Rachel Kim",
       blockedDate: "Dec 8, 2024",
-      imageUrl: "https://i.pinimg.com/736x/08/8c/39/088c393fc97c51b94fb2426dbfa1a465.jpg", 
+      imageUrl:
+        "https://i.pinimg.com/736x/08/8c/39/088c393fc97c51b94fb2426dbfa1a465.jpg",
     },
     {
       name: "James Foster",
       blockedDate: "Nov 30, 2024",
-      imageUrl: "https://i.pinimg.com/736x/08/8c/39/088c393fc97c51b94fb2426dbfa1a465.jpg", 
+      imageUrl:
+        "https://i.pinimg.com/736x/08/8c/39/088c393fc97c51b94fb2426dbfa1a465.jpg",
     },
   ]);
 
@@ -63,18 +69,30 @@ const SettingRightSide6Com3: React.FC = () => {
           <p className="text-2xl">Blocked Users</p>
         </div>
         <div className="text-lg text-gray-500">
-          Manage users you have blocked. They will not be able to contact you or see your job posts.
+          Manage users you have blocked. They will not be able to contact you or
+          see your job posts.
         </div>
       </div>
 
       <div className="space-y-4">
         {blockedUsers.map((user, index) => (
-          <div key={index} className="flex items-center justify-between p-4 border rounded-xl border-gray-300">
+          <div
+            key={index}
+            className="flex items-center justify-between p-4 border rounded-xl border-gray-300"
+          >
             <div className="flex items-center space-x-4">
               <div className="flex-shrink-0">
-                <div className={`w-12 h-12 rounded-full bg-gray-300 ${user.imageUrl ? "" : "flex items-center justify-center"}`}>
+                <div
+                  className={`w-12 h-12 rounded-full bg-gray-300 ${user.imageUrl ? "" : "flex items-center justify-center"}`}
+                >
                   {user.imageUrl ? (
-                    <img src={user.imageUrl} alt={user.name[0]} className="w-full h-full rounded-full object-center" />
+                    <Image
+                      src={user.imageUrl}
+                      alt={user.name[0]}
+                      className="w-full h-full rounded-full object-center"
+                      width={48}
+                      height={48}
+                    />
                   ) : (
                     <span className="text-white">{user.name[0]}</span> // Default avatar with the first letter of the name
                   )}
@@ -82,7 +100,9 @@ const SettingRightSide6Com3: React.FC = () => {
               </div>
               <div className="space-y-1">
                 <div className="text-lg">{user.name}</div>
-                <div className="text-sm text-gray-500">Blocked on {user.blockedDate}</div>
+                <div className="text-sm text-gray-500">
+                  Blocked on {user.blockedDate}
+                </div>
               </div>
             </div>
             <div
@@ -105,7 +125,8 @@ const SettingRightSide6Com3: React.FC = () => {
                 Unblock {blockedUsers[userToUnblock].name}?
               </div>
               <div className="text-sm text-gray-500 mb-4">
-                This user will be able to contact you, apply to your jobs, and see your job posts again. You can always block them again later.
+                This user will be able to contact you, apply to your jobs, and
+                see your job posts again. You can always block them again later.
               </div>
 
               {/* Modal buttons */}

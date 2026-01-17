@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 interface GigData {
-  id: number;
+  id: number | string;
   freelancerName: string;
   shortBio: string;
   description: string;

@@ -6,11 +6,10 @@ import ws from "@/app/lib/ws";
 import MoreMenu from "@/app/components/styles/client_styles/messages/MoreMenu";
 import type { Conversation } from "./ConversationsSidebar";
 import ProposalOfferCard from "./ProposalOfferCard";
-import { useRouter } from "next/navigation";
 
 function handleKeyboardActivate(
   e: React.KeyboardEvent,
-  onActivate: () => void
+  onActivate: () => void,
 ) {
   if (e.key === "Enter" || e.key === " ") {
     e.preventDefault();
@@ -142,15 +141,15 @@ interface ChatPanelProps {
   setChatText: (v: string) => void;
   onSend: () => void;
   menuRef: React.RefObject<HTMLDivElement | null>;
-  user: any;
+  user: Record<string, unknown>;
   messagesEndRef?: React.RefObject<HTMLDivElement>;
 }
 
 export default function ChatPanel(props: ChatPanelProps) {
-  const router = useRouter();
+  // const router = useRouter();
   const {
     conversation,
-    visible,
+    /* visible, */
     menuOpen,
     setMenuOpen,
     onMute,
@@ -167,11 +166,11 @@ export default function ChatPanel(props: ChatPanelProps) {
   } = props;
   // const { user } = useAuth();
   const [messages, setMessages] = React.useState(
-    conversation ? conversation.messages : []
+    conversation ? conversation.messages : [],
   );
   // Toast state for proposal status update
   const [toast, setToast] = useState<null | { status: string; by: string }>(
-    null
+    null,
   );
 
   // Debug: log conversation and messages
@@ -184,9 +183,20 @@ export default function ChatPanel(props: ChatPanelProps) {
   // Connect to WebSocket for real-time chat
   useEffect(() => {
     if (!user?.id) return;
-    ws.connect(user.id, (event) => {
+    ws.connect(user.id, (event: { type: string; payload?: Record<string, unknown> }) => {
       if (event.type === "MESSAGE") {
-        const msg = event.payload;
+        const msg = event.payload as {
+          id?: string;
+          conversationId?: string;
+          senderName?: string;
+          contents?: string;
+          time?: string;
+          messageType?: string;
+          gigId?: string | null;
+          contractOfferId?: string | null;
+          proposalId?: string | null;
+          status?: string;
+        };
         if (
           msg &&
           ((msg.conversationId &&
@@ -198,7 +208,7 @@ export default function ChatPanel(props: ChatPanelProps) {
             {
               id: msg.id || Math.random().toString(),
               from: msg.senderName === user.username ? "me" : "them",
-              text: msg.contents,
+              text: msg.contents || "",
               time: msg.time || new Date().toLocaleTimeString(),
               messageType: msg.messageType || undefined,
               gigId: msg.gigId || null,
@@ -210,8 +220,8 @@ export default function ChatPanel(props: ChatPanelProps) {
       }
       // Listen for proposal status update (for freelancer)
       if (event.type === "PROPOSAL_STATUS_UPDATE") {
-        const { status, by } = event.payload || {};
-        setToast({ status, by });
+        const { status, by } = event.payload as { status?: string; by?: string } || {};
+        setToast({ status: status || "", by: by || "" });
         // Hide toast after 4 seconds
         setTimeout(() => setToast(null), 4000);
       }
@@ -231,7 +241,7 @@ export default function ChatPanel(props: ChatPanelProps) {
     ) {
       console.warn(
         "[WARN] No messages found for this conversation:",
-        conversation
+        conversation,
       );
     }
   }, [conversation]);
@@ -305,7 +315,7 @@ export default function ChatPanel(props: ChatPanelProps) {
                   onClick={() => console.log("Phone clicked")}
                   onKeyDown={(e) =>
                     handleKeyboardActivate(e, () =>
-                      console.log("Phone clicked")
+                      console.log("Phone clicked"),
                     )
                   }
                   className="w-9 h-9 rounded-md hover:bg-gray-50 inline-flex items-center justify-center cursor-pointer select-none text-gray-600"
@@ -320,7 +330,7 @@ export default function ChatPanel(props: ChatPanelProps) {
                   onClick={() => console.log("Video clicked")}
                   onKeyDown={(e) =>
                     handleKeyboardActivate(e, () =>
-                      console.log("Video clicked")
+                      console.log("Video clicked"),
                     )
                   }
                   className="w-9 h-9 rounded-md hover:bg-gray-50 inline-flex items-center justify-center cursor-pointer select-none text-gray-600"
@@ -374,7 +384,7 @@ export default function ChatPanel(props: ChatPanelProps) {
                       let type = "Fixed Price";
                       let budget = 0;
                       let milestones = 1;
-                      let status = "Pending";
+                      const status = "Pending";
                       const regex =
                         /Proposal: (.*?) \| Rate: (.*?) \| Delivery: (.*?) days/;
                       const match = m.text?.match(regex);
@@ -416,15 +426,15 @@ export default function ChatPanel(props: ChatPanelProps) {
                                       prevMsgs.map((msg) =>
                                         msg.id === m.id
                                           ? { ...msg, status: "Accepted" }
-                                          : msg
-                                      )
+                                          : msg,
+                                      ),
                                     );
                                     // Send PROPOSAL_ACTION event to backend via WebSocket using ws utility
                                     console.log(
                                       "[DEBUG] About to send PROPOSAL_ACTION: contractOfferId=",
                                       m.contractOfferId,
                                       "full message=",
-                                      m
+                                      m,
                                     );
                                     const proposalActionPayload = {
                                       type: "PROPOSAL_ACTION",
@@ -438,14 +448,15 @@ export default function ChatPanel(props: ChatPanelProps) {
                                     ws.send(proposalActionPayload);
                                     console.log(
                                       "[WebSocket] Sent PROPOSAL_ACTION via ws.send:",
-                                      proposalActionPayload
+                                      proposalActionPayload,
                                     );
                                     // Trigger order refresh if available
                                     if (
                                       typeof window !== "undefined" &&
-                                      window.refreshOrders
+                                      typeof (window as unknown as { refreshOrders?: () => void }).refreshOrders ===
+                                        "function"
                                     ) {
-                                      window.refreshOrders();
+                                      ((window as unknown) as { refreshOrders: () => void }).refreshOrders();
                                     }
                                   }
                             }
@@ -458,8 +469,8 @@ export default function ChatPanel(props: ChatPanelProps) {
                                       prevMsgs.map((msg) =>
                                         msg.id === m.id
                                           ? { ...msg, status: "Declined" }
-                                          : msg
-                                      )
+                                          : msg,
+                                      ),
                                     );
                                   }
                             }

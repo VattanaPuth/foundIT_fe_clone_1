@@ -1,12 +1,15 @@
 import { MapPin, Star } from "lucide-react";
+import Image from "next/image";
 
 export default function ProfileHeader() {
   return (
     <section className="flex items-start gap-6 py-8">
-      <img
+      <Image
         src="/profile.jpg"
         alt="Profile"
         className="w-20 h-20 rounded-full object-cover"
+        width={80}
+        height={80}
       />
 
       <div className="flex-1">

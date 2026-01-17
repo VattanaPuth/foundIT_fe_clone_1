@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { handleKeyboardActivate } from "@/app/components/styles/client_styles/application/utils";
 
 import {
@@ -37,9 +38,11 @@ export default function ProposalCandidateCard({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           {/* Left */}
           <div className="flex items-start gap-3 min-w-0">
-            <img
+            <Image
               src={candidate.avatarSrc}
               alt="Candidate avatar"
+              width={48}
+              height={48}
               className="h-12 w-12 rounded-full object-cover border border-gray-200"
             />
 

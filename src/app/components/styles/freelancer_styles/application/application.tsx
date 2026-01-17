@@ -296,11 +296,6 @@ export default function ApplicationPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
 
-  if (!isAuthenticated) {
-    router.push("/page/(welcome)/sign_in");
-    return null;
-  }
-
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("Most Recent");
   const [activeTab, setActiveTab] = useState<string>("all");

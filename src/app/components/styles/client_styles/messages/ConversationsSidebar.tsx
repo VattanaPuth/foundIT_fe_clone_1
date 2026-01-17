@@ -15,6 +15,7 @@ export type Message = {
   recipientId?: string | number | { id: string | number };
   contents?: string;
   contractOfferId?: string | number | null;
+  status?: string;
 };
 
 export type Conversation = {
@@ -31,7 +32,7 @@ export type Conversation = {
 
 function handleKeyboardActivate(
   e: React.KeyboardEvent,
-  onActivate: () => void
+  onActivate: () => void,
 ) {
   if (e.key === "Enter" || e.key === " ") {
     e.preventDefault();

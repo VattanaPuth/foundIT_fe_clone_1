@@ -1,8 +1,7 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useMemo } from "react";
 import SubHeader from "./sub_header";
-import PaymentSuccessForm from "../payment_accept_delivery/payment_success_form";
 import { useRouter } from "next/navigation";
 import { getOrdersByClient, updateOrderStatus } from "@/app/lib/orderApi";
 import { useAuth } from "@/app/contexts/AuthContext";
@@ -238,7 +237,7 @@ function OrderGigCard({
       onOrderUpdated(); // Refresh orders after update
       setShowModal(false);
       payment_success_form.push("/page/client/payment_accpet_delivery");
-    } catch (e) {
+    } catch {
       alert("Failed to accept delivery. Please try again.");
     }
   };
@@ -270,8 +269,8 @@ function OrderGigCard({
         },
       ]
     : gig.actions?.length
-    ? gig.actions
-    : defaultActions;
+      ? gig.actions
+      : defaultActions;
 
   return (
     <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8">
@@ -311,13 +310,13 @@ function OrderGigCard({
         {/* Status Badge */}
         {(() => {
           const isIssue = gig.hasIssues === true;
-          const displayStatus = isIssue ? "Issues" : gig.status ?? "Unknown";
+          const displayStatus = isIssue ? "Issues" : (gig.status ?? "Unknown");
           const colorStatus = isIssue ? "Issues" : gig.status;
 
           return (
             <span
               className={`inline-flex px-3 py-1 w-fit rounded-full text-xs font-medium ${getStatusColor(
-                colorStatus
+                colorStatus,
               )}`}
             >
               {displayStatus}
@@ -458,43 +457,58 @@ export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState("All");
   const [sortBy, setSortBy] = useState("recently_updated");
   const [clientOrders, setClientOrders] = useState<OrderGig[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const { user } = useAuth();
   const clientId = user?.id;
   const token = authService.getToken();
 
   // Add a refresh function for orders
-  const refreshOrders = async () => {
+  const refreshOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const orders = await getOrdersByClient(clientId, token);
-      const mappedOrders = orders.map((order: any) => ({
-        id: order.id,
-        title: order.projectTitle,
-        author: order.freelancer?.name || "Unknown Freelancer",
-        authorRole: "Freelancer",
-        meta: [
-          { icon: <DefaultDocIcon />, text: order.status },
-          { icon: <DefaultClockIcon />, text: order.createdAt },
-        ],
-        status: order.status,
-        currentAmount: order.amount,
-        totalAmount: order.totalAmount,
-        rateType: "fixed",
-        hasIssues: false,
-        updatedAt: new Date(order.updatedAt),
-        dueDate: order.dueDate ? new Date(order.dueDate) : undefined,
-      }));
+      const orders = await getOrdersByClient(
+        Number(clientId) || 0,
+        token || "",
+      );
+      const mappedOrders = orders.map(
+        (order: {
+          id: string;
+          projectTitle: string;
+          freelancer?: { name?: string };
+          status?: string;
+          amount?: number;
+          totalAmount?: number;
+          updatedAt?: string;
+          dueDate?: string;
+          createdAt?: string;
+        }) => ({
+          id: order.id,
+          title: order.projectTitle,
+          author: order.freelancer?.name || "Unknown Freelancer",
+          authorRole: "Freelancer",
+          meta: [
+            { icon: <DefaultDocIcon />, text: order.status },
+            { icon: <DefaultClockIcon />, text: order.createdAt },
+          ],
+          status: order.status,
+          currentAmount: order.amount,
+          totalAmount: order.totalAmount,
+          rateType: "fixed",
+          hasIssues: false,
+          updatedAt: order.updatedAt ? new Date(order.updatedAt) : undefined,
+          dueDate: order.dueDate ? new Date(order.dueDate) : undefined,
+        }),
+      );
       setClientOrders(mappedOrders);
-    } catch (e) {
+    } catch {
       setClientOrders([]);
     }
     setLoading(false);
-  };
+  }, [clientId, token]);
 
   useEffect(() => {
     refreshOrders();
-  }, [clientId]);
+  }, [clientId, refreshOrders]);
 
   // Compute dynamic tab counts from clientOrders
   const tabCounts = useMemo(() => {
@@ -526,7 +540,7 @@ export default function OrdersPage() {
       { label: "Completed", count: tabCounts.Completed },
       { label: "Issues", count: tabCounts.Issues, variant: "danger" },
     ],
-    [tabCounts]
+    [tabCounts],
   );
 
   // Filter gigs based on active tab

@@ -36,7 +36,7 @@ export default function TalentPageContent() {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         let mappedTalents: Talent[] = [];
@@ -46,8 +46,24 @@ export default function TalentPageContent() {
           const freelancerData = await freelancerResponse.json();
           const freelancerGigs = freelancerData.content || [];
 
+          interface FreelancerGig {
+            id: string;
+            freelancerName?: string;
+            shortBio?: string;
+            rating?: number;
+            reviewCount?: number;
+            price?: number;
+            skillName?: string;
+            description?: string;
+            experience?: string;
+            location?: string;
+            lastActiveDays?: number;
+            workCount?: number;
+            verified?: boolean;
+            imageUrl?: string;
+          }
           const freelancerTalents: Talent[] = freelancerGigs.map(
-            (gig: any) => ({
+            (gig: FreelancerGig) => ({
               id: `fl-${gig.id}`,
               name: gig.freelancerName || "Freelancer",
               title: gig.shortBio || "Skilled Professional",
@@ -63,7 +79,7 @@ export default function TalentPageContent() {
               workCount: gig.workCount || 0,
               verified: gig.verified || false,
               imageUrl: gig.imageUrl,
-            })
+            }),
           );
 
           mappedTalents = [...mappedTalents, ...freelancerTalents];
@@ -73,7 +89,7 @@ export default function TalentPageContent() {
           "✓ Fetched freelancer gigs:",
           mappedTalents.length,
           "IDs:",
-          mappedTalents.map((t) => t.id)
+          mappedTalents.map((t) => t.id),
         );
         setTalents(mappedTalents);
       } catch (error) {
@@ -90,19 +106,19 @@ export default function TalentPageContent() {
   // Filter application logic...
   const toggleFavorite = (id: number) => {
     setFavorites((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
   const toggleExperience = (exp: string) => {
     setSelectedExperience((prev) =>
-      prev.includes(exp) ? prev.filter((x) => x !== exp) : [...prev, exp]
+      prev.includes(exp) ? prev.filter((x) => x !== exp) : [...prev, exp],
     );
   };
 
   const toggleLocation = (loc: string) => {
     setSelectedLocations((prev) =>
-      prev.includes(loc) ? prev.filter((x) => x !== loc) : [...prev, loc]
+      prev.includes(loc) ? prev.filter((x) => x !== loc) : [...prev, loc],
     );
   };
 

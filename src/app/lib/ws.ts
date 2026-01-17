@@ -1,12 +1,12 @@
 // Simple WebSocket utility for chat
 // Usage: import ws from './ws'; ws.connect(userId, onMessage)
 
-let socket = null;
-let currentUserId = null;
-let onMessageCallback = null;
+let socket: WebSocket | null = null;
+let currentUserId: string | number | null = null;
+let onMessageCallback: ((data: any) => void) | null = null;
 
 const ws = {
-  connect: (userId, onMessage) => {
+  connect: (userId: any, onMessage: (data: any) => void) => {
     let safeUserId = userId;
     if (typeof userId === "object" && userId !== null) {
       safeUserId = userId.id || userId._id || JSON.stringify(userId);
@@ -38,7 +38,7 @@ const ws = {
       // Optionally handle error
     };
   },
-  send: (data) => {
+  send: (data: any) => {
     if (socket && socket.readyState === 1) {
       socket.send(JSON.stringify(data));
     }

@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 
-export default function JobsSection({ gigData }) {
+interface JobsSectionProps {
+  gigData: {
+    freelancerName?: string;
+  };
+}
+
+export default function JobsSection({ gigData }: JobsSectionProps) {
   // Placeholder: In a real app, fetch jobs for this freelancer using gigData.id
   // For now, just show a message or static content
   return (

@@ -106,8 +106,8 @@ export default function CategoryTypeSection({
                   e.preventDefault();
                   onAddCategory();
                 } else if (e.key === "Escape") {
-                  setShowCategoryInput(false);
-                  setNewCategoryInput("");
+                  setShowCategoryInput?.(false);
+                  setNewCategoryInput?.("");
                 }
               }}
               placeholder="Enter custom category..."
@@ -122,8 +122,8 @@ export default function CategoryTypeSection({
             </button>
             <button
               onClick={() => {
-                setShowCategoryInput(false);
-                setNewCategoryInput("");
+                setShowCategoryInput?.(false);
+                setNewCategoryInput?.("");
               }}
               className="h-10 px-4 rounded-md border border-gray-300 text-gray-700 text-sm hover:bg-gray-50"
             >
@@ -192,8 +192,8 @@ export default function CategoryTypeSection({
                   e.preventDefault();
                   onAddType();
                 } else if (e.key === "Escape") {
-                  setShowTypeInput(false);
-                  setNewTypeInput("");
+                  setShowTypeInput?.(false);
+                  setNewTypeInput?.("");
                 }
               }}
               placeholder="Enter custom type..."
@@ -208,8 +208,8 @@ export default function CategoryTypeSection({
             </button>
             <button
               onClick={() => {
-                setShowTypeInput(false);
-                setNewTypeInput("");
+                setShowTypeInput?.(false);
+                setNewTypeInput?.("");
               }}
               className="h-10 px-4 rounded-md border border-gray-300 text-gray-700 text-sm hover:bg-gray-50"
             >

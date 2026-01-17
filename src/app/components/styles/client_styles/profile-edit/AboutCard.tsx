@@ -5,7 +5,6 @@ import {
   FieldLabel,
   Pill,
   TextArea,
-  TextInput,
   handleKeyboardActivate,
 } from "@/app/components/styles/client_styles/profile-edit/FormControls";
 
